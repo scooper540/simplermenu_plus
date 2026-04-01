@@ -1,10 +1,11 @@
+#include <boost/operators.hpp>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -18,11 +19,11 @@
 #include "Application.h"
 #include "Exception.h"
 
-
-Application::Application() 
-    : i18n("/userdata/system/configs/simplermenu_plus/i18n.ini"),
-      cfg("/userdata/system/configs/simplermenu_plus/config.ini", 
-          "/userdata/system/configs/simplermenu_plus/.state"),
+Application::Application() : Application(".", "./.state") {}
+Application::Application(const std::string& szBasePath, const std::string& szStateFile) 
+    : i18n(szBasePath + "/i18n.ini"),
+      cfg(szBasePath + "/config.ini", 
+          szStateFile),
       theme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME), cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT)),
       controlMapping(cfg),
       renderComponent(cfg, theme),
@@ -43,6 +44,8 @@ Application::Application()
     systemSettings.initializeSettings();
     appSettings.initializeSettings();
 
+
+	//todo define in config if we should rebuild cache at startup
     bool rebuildCache = false;
     try {
         state = cfg.loadState();
@@ -70,7 +73,7 @@ Application::Application()
         rebuildCache = true;
         
     }
-
+	
     if (rebuildCache) {
         // Initialize/Rebuild the cache - always create a new cache 
         // from disk contents on startup
@@ -98,6 +101,8 @@ Application::Application()
     renderComponent.initialize();
 
     // Initialize joystick
+#ifndef POWKIDDY
+//disable joystick at this time, to be enabled again once SDL1.2 open all joystick when 1 is opened from client app
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
         std::cerr << "Failed to initialize SDL joystick subsystem: " << SDL_GetError() << std::endl;
     }
@@ -113,7 +118,7 @@ Application::Application()
             std::cout << "Number of Buttons: " << SDL_JoystickNumButtons(joystick) << std::endl;
         }
     }
-    
+#endif    
 }
 
 void Application::drawCurrentState() {
@@ -563,10 +568,10 @@ void Application::loadCache(bool force) {
         
         // get the path to the cache file by removing the filename
         // from the cacheFilePath
-        std::filesystem::path cacheFilePathObj(cacheFilePath);
+        boost::filesystem::path cacheFilePathObj(cacheFilePath);
         cacheFilePathObj.remove_filename();
         // create the directories if they do not exist
-        std::filesystem::create_directories(cacheFilePathObj.string());
+        boost::filesystem::create_directories(cacheFilePathObj.string());
 
         menuCache.saveToCache(cacheFilePath, populateCache());
 

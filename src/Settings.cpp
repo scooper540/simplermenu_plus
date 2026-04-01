@@ -1,5 +1,5 @@
 #include <iostream>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <SDL/SDL.h>
 
 #include <boost/algorithm/string.hpp>
@@ -136,7 +136,7 @@ void Settings::initializeSettings() {
         cfg.get(Configuration::SCREEN_WIDTH) + "x" +
         cfg.get(Configuration::SCREEN_HEIGHT) + "/";
 
-    for (const auto& entry : std::filesystem::directory_iterator(themePath)) {
+    for (const auto& entry : boost::filesystem::directory_iterator(themePath)) {
         if (entry.is_directory()) {
                 themeFolders.insert(entry.path().filename().string());
         }

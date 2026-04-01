@@ -4,7 +4,7 @@
 // #include "MenuItem.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-
+#include <boost/unordered_map.hpp>
 namespace pt = boost::property_tree;
 
 struct CachedMenuItem {
@@ -17,7 +17,7 @@ struct CachedMenuItem {
 
 class MenuCache {
 private:
-    std::unordered_map<std::string, std::vector<CachedMenuItem>> inMemoryCache;
+    boost::unordered_map<std::string, std::vector<CachedMenuItem>> inMemoryCache;
 
 public:
     MenuCache() = default;

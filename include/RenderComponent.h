@@ -119,10 +119,34 @@ private:
 
         SDL_Surface* loadedSurface = IMG_Load(backgroundPath.c_str());
         if(loadedSurface) {
-            background = SDL_DisplayFormat(loadedSurface);
-            SDL_FreeSurface(loadedSurface);
-        } else {
-            std::cerr << "Failed to load background: " << IMG_GetError() << std::endl;
+            //std::cerr << "SCREEN X:" << screen->w << " Y:"<<screen->h << " BACKGROUND X:" << loadedSurface->w << " Y:" << loadedSurface->h << std::endl;
+            //resize background picture if not matching screen size
+            if (loadedSurface->w != screen->w || loadedSurface->h != screen->h) 
+            {
+                loadedSurface = SDL_DisplayFormat(loadedSurface);
+                SDL_Rect dest = {0, 0, screen->w, screen->h};
+                SDL_Surface* temp = SDL_CreateRGBSurface(
+                SDL_SWSURFACE,        // surface logicielle
+                screen->w,
+                screen->h,
+                screen->format->BitsPerPixel,
+                screen->format->Rmask,
+                screen->format->Gmask,
+                screen->format->Bmask,
+                screen->format->Amask
+                );
+                SDL_SoftStretch(loadedSurface, NULL, temp, &dest);
+                SDL_FreeSurface(loadedSurface); 
+                background = SDL_DisplayFormat(temp);
+                SDL_FreeSurface(temp);
+            }
+            else {
+                background = SDL_DisplayFormat(loadedSurface);
+                SDL_FreeSurface(loadedSurface);            
+            }
+            //std::cerr << "NOW SCREEN X:" << screen->w << " Y:"<<screen->h << " BACKGROUND X:" << loadedSurface->w << " Y:" << loadedSurface->h << std::endl;
+  
+            
         }
         if (!background) {
             std::cerr << "Failed to load background: " << IMG_GetError() << std::endl;

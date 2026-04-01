@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -63,7 +63,7 @@ private:
     // int currentFolderIndex = 0;
     // int currentRomIndex = 0;
     int currentSettingsIndex = 0;
-    int currentFolderSettingsIndex = 0;
+    int currentSystemSettingsIndex = 0;
     int currentRomSettingsIndex = 0;
     int currentSettingsValue = 0;
 
@@ -80,6 +80,7 @@ private:
 
 public:
     Application();
+    Application(const std::string& szBasePath, const std::string& szStateFile);
     // ~Application();
 
     void drawCurrentState();
