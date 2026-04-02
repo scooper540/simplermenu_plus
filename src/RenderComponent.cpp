@@ -3,7 +3,7 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
 #include <SDL/SDL_image.h>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <SDL/SDL_gfxPrimitives.h>
 #include <SDL/SDL_rotozoom.h>
 #include <SDL/SDL_image.h>
@@ -274,7 +274,7 @@ void RenderComponent::drawSettingsMenu(
 void RenderComponent::loadThumbnail(const std::string& romPath) {
     //std::cout << "loadThumbnail called for " << romPath << std::endl;
 
-    std::filesystem::path path(romPath);
+    boost::filesystem::path path(romPath);
     std::string romNameWithoutExtension = path.stem().string();
     std::string basePath = path.parent_path().string();
     std::string imagesPath = cfg.get(Configuration::IMAGES_PATH);
@@ -292,7 +292,7 @@ void RenderComponent::loadThumbnail(const std::string& romPath) {
     }
 
     // If the thumbnail doesn't exist, simply return
-    if (!std::filesystem::exists(thumbnailPath)) {
+    if (!boost::filesystem::exists(thumbnailPath)) {
         // std::cout << "Thumbnail not found: " << thumbnailPath << std::endl;
         return;
     }
@@ -376,7 +376,7 @@ void RenderComponent::loadAliases() {
 
 std::string RenderComponent::getAlias(const std::string& title) {
     std::string displayTitle = title;
-    std::filesystem::path romPath(title);
+	boost::filesystem::path romPath(title);
     std::string filenameWithoutExt = romPath.stem().string();
     // Check if the rom name exists in the alias map
     if (aliasMap.find(filenameWithoutExt) != aliasMap.end()) {

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -75,6 +75,7 @@ private:
 
 public:
     Application();
+    Application(const std::string& szBasePath, const std::string& szStateFile);
     // ~Application();
 
     void drawCurrentState();
