@@ -160,6 +160,7 @@ public:
     void saveState(const State& state);
 
     int getSectionSize(std::string section) {
+        //std::cout << "Size of " << section << ": " <<mainPt.get_child(section).size() << std::endl;
         return mainPt.get_child(section).size();
     }
 

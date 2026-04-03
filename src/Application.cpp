@@ -144,12 +144,14 @@ void Application::drawCurrentState() {
         }
         case SYSTEM_SETTINGS:
         {
-            const std::vector<Settings::I18nSetting> systemData;
+            std::vector<Settings::I18nSetting> systemData;
 
             auto systems = menu.getSystems();
             for (const auto& system : systems) {
                 Settings::I18nSetting setting;
                 setting.title = system.getTitle();
+                setting.value = systemSettings.getDefaultCore(system.getTitle(), cache);
+                systemData.push_back(setting);    
                 
             }
             renderComponent.drawSettingsMenu("System Settings", systemData, currentSystemSettingsIndex, cfg.getSectionSize(Configuration::SYSTEM));
@@ -157,7 +159,12 @@ void Application::drawCurrentState() {
         }
         case ROM_SETTINGS:
         {
-            renderComponent.drawSettingsMenu("Game Settings", romSettings.getRomSettings(), currentRomSettingsIndex, cfg.getSectionSize(Configuration::GAME));
+            std::vector<Settings::I18nSetting> romData;
+            Settings::I18nSetting setting;
+            setting.title = i18n.get("coreOverride");
+            setting.value = romSettings.getDefaultCore(cache); //get selected core for this rom
+            romData.push_back(setting);
+            renderComponent.drawSettingsMenu("Game Settings", romData, currentRomSettingsIndex, cfg.getSectionSize(Configuration::GAME));
             break;
         }
     }
@@ -180,6 +187,9 @@ void Application::handleCommand(ControlMap cmd) {
             } else if (cmd == CMD_ROM_SETTINGS) {
                 state.currentMenuLevel = MenuLevel::SYSTEM_SETTINGS;
                 renderComponent.resetValues();
+                systemSettings.currentSystem = menu.getSystems()[state.currentSystemIndex].getTitle();
+                systemSettings.applyCurrentKey();
+                systemSettings.getCores(systemSettings.currentSystem, cache);
             }
 
             // Save state after navigating, but not when entering the ROM settings
@@ -206,6 +216,9 @@ void Application::handleCommand(ControlMap cmd) {
             } else if (cmd == CMD_ROM_SETTINGS) {
                 state.currentMenuLevel = MenuLevel::ROM_SETTINGS;
                 renderComponent.resetValues();
+                romSettings.currentRom = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getTitle();
+                romSettings.currentSystem = menu.getSystems()[state.currentSystemIndex].getTitle();
+                romSettings.applyCurrentKey();
                 romSettings.getCores(menu.getSystems()[state.currentSystemIndex].getTitle(), cache);
             }
 
@@ -222,9 +235,10 @@ void Application::handleCommand(ControlMap cmd) {
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP) { // UP
                 if (currentSettingsIndex > 0) currentSettingsIndex--;
-                else currentSettingsIndex = cfg.getSectionSize(Configuration::APPLICATION) - 1;
+                else currentSettingsIndex = appSettings.getEnabledKeys().size() - 1;
+                std::cout << "currentSettingsIndex: " << currentSettingsIndex << std::endl;
             } else if (cmd == CMD_DOWN) { // DOWN
-                currentSettingsIndex = (currentSettingsIndex + 1) % (cfg.getSectionSize(Configuration::APPLICATION));
+                currentSettingsIndex = (currentSettingsIndex + 1) % (appSettings.getEnabledKeys().size());
                 std::cout << "currentSettingsIndex: " << currentSettingsIndex << std::endl;
             }
             break;
@@ -234,9 +248,10 @@ void Application::handleCommand(ControlMap cmd) {
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP) { // UP
                 if (state.currentSystemIndex > 0) state.currentSystemIndex--;
-                else state.currentSystemIndex = cfg.getSectionSize(Configuration::SYSTEM) - 1;
+                else state.currentSystemIndex = systemSettings.getEnabledKeys().size() - 1;
+                std::cout << "currentSettingsIndex: " << state.currentSystemIndex << std::endl;
             } else if (cmd == CMD_DOWN) { // DOWN
-                state.currentSystemIndex = (state.currentSystemIndex + 1) % (cfg.getSectionSize(Configuration::SYSTEM));
+                state.currentSystemIndex = (state.currentSystemIndex + 1) % (systemSettings.getEnabledKeys().size());
                 std::cout << "currentSettingsIndex: " << state.currentSystemIndex << std::endl;
             }
             break;
@@ -246,9 +261,9 @@ void Application::handleCommand(ControlMap cmd) {
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP) { // UP
                 if (currentRomSettingsIndex > 0) currentRomSettingsIndex--;
-                else currentRomSettingsIndex = cfg.getSectionSize(Configuration::GAME) - 1;
+                else currentRomSettingsIndex = romSettings.getEnabledKeys().size() - 1;
             } else if (cmd == CMD_DOWN) { // DOWN
-                currentRomSettingsIndex = (currentRomSettingsIndex + 1) % (cfg.getSectionSize(Configuration::GAME));
+                currentRomSettingsIndex = (currentRomSettingsIndex + 1) % (romSettings.getEnabledKeys().size() );
             } 
             break;
     }
@@ -281,19 +296,19 @@ void Application::handleCommand(ControlMap cmd) {
 
     if(state.currentMenuLevel == SYSTEM_SETTINGS) {
         if (cmd == CMD_UP) {
-            appSettings.navigateUp();
+            systemSettings.navigateUp();
         } else if (cmd == CMD_DOWN) {
-            appSettings.navigateDown();
+            systemSettings.navigateDown();
         } else if (cmd == CMD_LEFT) {
-            appSettings.navigateLeft();
+            systemSettings.navigateLeft();
         } else if (cmd == CMD_RIGHT) {
-            appSettings.navigateRight();
+            systemSettings.navigateRight();
         } else if (cmd == CMD_ENTER) {
-            appSettings.navigateEnter();
+            systemSettings.navigateEnter();
         }
 
-        std::string currentKey = appSettings.getCurrentKey();
-        std::string currentValue = appSettings.getCurrentValue();
+        std::string currentKey = systemSettings.getCurrentKey();
+        std::string currentValue = systemSettings.getCurrentValue();
 
     }
 
@@ -460,7 +475,6 @@ void Application::settingsChanged(const std::string& key, const std::string& val
                     cfg.get(Configuration::HOME_PATH) + "systems.json", 
                     menu.getSystems()[state.currentSystemIndex].getTitle(), value);
             }
-
         }
     } 
     

@@ -204,6 +204,12 @@ void RenderComponent::drawSettingsMenu(
     int currentSettingIndex,
     int sectionSize
 ) {
+    //verify we are not out of bounds
+    if (!settingList.empty()) {
+        currentSettingIndex = std::min(currentSettingIndex, (int)settingList.size() - 1);
+    } else {
+        currentSettingIndex = 0;
+    }
     std::string backgroundPath = cfg.get(Configuration::HOME_PATH) + "assets/settings.png";
     std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
     int settingsFontSize = 32; // FIXME: size needs to be dynamic
@@ -230,7 +236,9 @@ void RenderComponent::drawSettingsMenu(
     int total_pages = (sectionSize + itemsPerPage - 1) / itemsPerPage;
     int currentPage = currentSettingIndex / itemsPerPage;
     int startIndex = currentPage * itemsPerPage;
-    int endIndex = std::min<int>(startIndex + itemsPerPage, sectionSize);
+    if (startIndex >= settingList.size())
+        startIndex = 0;
+    int endIndex = std::min<int>(startIndex + itemsPerPage, settingList.size());
 
     for (int i = startIndex; i < endIndex; i++) {
         SDL_Color color = (i == currentSettingIndex) ? 
@@ -255,7 +263,7 @@ void RenderComponent::drawSettingsMenu(
         renderText(pageInfo, x, y, {255, 255, 255}, theme.getIntValue(Configuration::TEXT2_ALIGNMENT));
 
         std::string settingsValue = settingList[i].value;
-        if (settingsValue == "INTERNAL") { 
+        if (settingsValue == "INTERNAL" || settingsValue.empty()) { 
             settingsValue = ". . .";
         }
 

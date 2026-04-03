@@ -34,7 +34,7 @@ std::vector<std::string> FileManager::getFiles(const std::string& system) {
 
 #ifndef POWKIDDY
     try {
-        for (const auto& entry : std::filesystem::directory_iterator(system)) {
+        for (const auto& entry : boost::filesystem::directory_iterator(system)) {
             if (entry.is_regular_file()) {
                 std::string filename = entry.path().filename().string();
 

@@ -11,7 +11,7 @@ CFLAGS = -fdata-sections -ffunction-sections -fPIC -flto -Wall
 LIBS += -lSDL -lSDL_image -lSDL_ttf -lSDL_gfx -lz -lpthread -lm -lboost_filesystem # -lasound
 
 # You can use Ofast too but it can be more prone to bugs, careful.
-CFLAGS += -g -Iinclude/
+CFLAGS += -g -Iinclude/ -DPOWKIDDY=1
 LDFLAGS = -Wl,--start-group $(LIBS) -Wl,--end-group -Wl,--as-needed -Wl,--gc-sections -flto
 
 DEBUG = YES
@@ -26,7 +26,7 @@ OBJECTS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(OBJECTS))
 
 rm = rm -f
 
-all: clean remove prepare $(BINDIR)/$(TARGET) $(OBJECTS)
+all: prepare $(BINDIR)/$(TARGET) $(OBJECTS)
 
 prepare:
 	mkdir -p $(BINDIR)

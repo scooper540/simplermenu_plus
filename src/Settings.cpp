@@ -19,7 +19,9 @@ Settings::Settings(Configuration& cfg, I18n& i18n,
 AppSettings::AppSettings(Configuration& cfg, I18n& i18n, 
                                int minValue, int maxValue, int delta)
     : Settings(cfg, i18n, minValue, maxValue, delta) {
-    defaultKeys = {
+
+        defaultKeys = {
+#ifndef POWKIDDY
         Configuration::VOLUME, Configuration::BRIGHTNESS, Configuration::SCREEN_REFRESH,
         Configuration::SHOW_FPS, Configuration::OVERCLOCK, Configuration::THEME,
         Configuration::THUMBNAIL_TYPE,
@@ -27,6 +29,13 @@ AppSettings::AppSettings(Configuration& cfg, I18n& i18n,
         Configuration::LANGUAGE,
         Configuration::UPDATE_CACHES, Configuration::CORE_SETTINGS,
         Configuration::RESTART, Configuration::QUIT
+#else
+        Configuration::SCREEN_REFRESH, Configuration::SHOW_FPS, Configuration::THEME,
+        Configuration::THUMBNAIL_TYPE,
+        Configuration::LANGUAGE,
+        Configuration::UPDATE_CACHES, 
+        Configuration::QUIT
+#endif
     };
 }
 
@@ -40,7 +49,11 @@ RomSettings::RomSettings(Configuration& cfg, I18n& i18n,
                           int minValue, int maxValue, int delta)
         : Settings(cfg, i18n, minValue, maxValue, delta) {
     defaultKeys = {
-        Configuration::ROM_OVERCLOCK, Configuration::ROM_AUTOSTART, Configuration::CORE_OVERRIDE
+#ifndef POWKIDDY
+    Configuration::ROM_OVERCLOCK, Configuration::ROM_AUTOSTART,Configuration::CORE_OVERRIDE
+#else
+    Configuration::CORE_OVERRIDE
+#endif
     };    
 
 }
@@ -136,7 +149,7 @@ std::vector<Settings::I18nSetting> RomSettings::getRomSettings() {
             if (pos != std::string::npos) {
                 try {
                     i18nSettings.push_back({i18n.get(key.substr(pos + 1)), 
-                                            settingsMap[key].value
+                                            
                                             });
                 } catch (boost::property_tree::ptree_bad_path e) {
                     throw ItemNotFoundException("Language translation not found for " 
@@ -336,15 +349,27 @@ void RomSettings::updateCoreOverride(bool increase) {
     updateListSetting(cores, increase);
 
     std::cout << "***** co current core: " << currentValue << std::endl;
-    std::cout << "***** co previous value: " << settingsMap[Configuration::CORE_OVERRIDE].value << std::endl;
+    std::cout << "***** co previous value: " << settingsMap[currentKey].value << std::endl;
 
-    settingsMap[Configuration::CORE_OVERRIDE].value = currentValue;
+    settingsMap[currentKey].value = currentValue;
 
-    notifySettingsChange(Configuration::CORE_OVERRIDE, currentValue);
+    notifySettingsChange(currentKey, currentValue);
 
     std::cout << "UPDATING CORE OVERRIDE" << std::endl;
 }
 
+void SystemSettings::updateCoreOverride(bool increase) {
+    updateListSetting(cores, increase);
+
+    std::cout << "***** co current core: " << currentValue << std::endl;
+    std::cout << "***** co previous value: " << settingsMap[currentKey].value << std::endl;
+
+    settingsMap[currentKey].value = currentValue;
+
+    notifySettingsChange(currentKey, currentValue);
+
+    std::cout << "UPDATING DEFAULT SYSTEM CORE OVERRIDE" << std::endl;
+}
 std::string Settings::getCurrentKey() {
     return currentKey;
 };

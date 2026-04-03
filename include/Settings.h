@@ -60,7 +60,7 @@ protected:
     
     std::set<std::string> cores;
 
-    std::vector<std::string> getEnabledKeys();
+    
 
     /**
      * ISettingsSubject methods
@@ -83,7 +83,7 @@ public:
 
     std::string getCurrentKey();
     std::string getCurrentValue();
-
+    std::vector<std::string> getEnabledKeys();
     /**
      * ISettingsSubject methods
     */
@@ -233,19 +233,78 @@ public:
 
     SystemSettings(Configuration& cfg, I18n& i18n, 
                    int minValue, int maxValue, int delta);
-
+    std::string currentSystem;
     std::vector<Settings::I18nSetting> getSystemSettings();
-
+    void applyCurrentKey() {
+        std::replace(currentSystem.begin(), currentSystem.end(), '.', '_');
+        currentKey = "SYSTEM." + currentSystem;
+    }
+    void updateCoreOverride(bool increase);
     void navigateUp() { Settings::navigateUp(); };
     void navigateDown() { Settings::navigateDown();};
-    void navigateLeft() override {};
-    void navigateRight() override {};
+    void navigateLeft() override {
+        std::cout << "navigate Left" << std::endl;
+        updateCoreOverride(false);
+        notifySettingsChange(currentKey, currentValue);
+    };
+    void navigateRight() override {
+        std::cout << "navigate Right" << std::endl;
+        updateCoreOverride(true);
+        notifySettingsChange(currentKey, currentValue);
+    };
     void navigateEnter() override {};
 
     /**
      * ISettingsSubject methods 
      */
     std::string getName() override;
+    std::string getDefaultCore(std::string systemName, Cache& cache) {
+        //check if we have an override in ini file, if not return the SelectedExec from json
+        if(!settingsMap[currentKey].value.empty())
+            return settingsMap[currentKey].value;
+        else
+        {
+            std::map<std::string, ConsoleData> consoleDataMap = 
+                cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
+
+            // Check if the parentTitle exists in the consoleDataMap
+            if (consoleDataMap.find(systemName) != consoleDataMap.end()) {
+                return (consoleDataMap[systemName].selectedExec.empty()) ? *cores.begin() : consoleDataMap[systemName].selectedExec;
+            }
+            else
+                return "NOT FOUND! Define selectedExec in systems.json";
+        }
+    }
+    void getCores(std::string systemName, Cache& cache) {
+
+        // Retrieve the systems cache (from memory, if was already read, or file
+        // if this is the first time we are reading it)
+        std::map<std::string, ConsoleData> consoleDataMap = 
+            cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
+
+        cores.clear();
+
+        // Check if the parentTitle exists in the consoleDataMap
+        if (consoleDataMap.find(systemName) != consoleDataMap.end()) {
+            // Access the ConsoleData for the parentTitle
+            ConsoleData consoleData = consoleDataMap[systemName];
+
+            // Check if the execs vector is not empty
+            if (!consoleData.execs.empty()) {
+                for(auto exec: consoleData.execs) {
+                    cores.insert(exec);
+                }
+            }
+        }
+        // By default we select the first core from the list
+        std::string currentCore = (consoleDataMap[systemName].selectedExec.empty()) ? *cores.begin() : consoleDataMap[systemName].selectedExec;
+
+        //if there is an override we take the override
+        if(!settingsMap[currentKey].value.empty())
+            currentCore = settingsMap[currentKey].value;
+        settingsMap[currentKey] = {currentKey, currentCore, true};
+        notifySettingsChange(currentKey, currentCore);
+    }
 };
 
 class RomSettings : public Settings, public ILanguageObserver {
@@ -254,7 +313,13 @@ public:
                 int minValue, int maxValue, int delta);
 
     std::vector<Settings::I18nSetting> getRomSettings();
-
+    std::string currentRom;
+    std::string currentSystem;
+    void applyCurrentKey() {
+        std::replace(currentSystem.begin(), currentSystem.end(), '.', '_');
+        std::replace(currentRom.begin(), currentRom.end(), '.', '_');
+        currentKey = "ROM." + currentSystem + "-" + currentRom;
+    }
     void updateRomOverclock(bool increase);
     void updateAutoStart(bool increase);
     void updateCoreOverride(bool increase);
@@ -266,29 +331,15 @@ public:
     };
     void navigateLeft() override {
         std::cout << "navigate Left" << std::endl;
-        if (settingsMap[currentKey].enabled) {
-            if (currentKey == Configuration::CORE_OVERRIDE) {
-                updateCoreOverride(false);
-            } else if (currentKey == Configuration::ROM_OVERCLOCK) {
-                updateRomOverclock(false); 
-            } else if (currentKey == Configuration::ROM_AUTOSTART) {
-                updateAutoStart(false);            
-            }
-        }
+
+        updateCoreOverride(false);
         notifySettingsChange(currentKey, currentValue);
     }
 
     void navigateRight() override {
         std::cout << "navigate Right" << std::endl;
-        if (settingsMap[currentKey].enabled) {
-            if (currentKey == Configuration::CORE_OVERRIDE) {
-                updateCoreOverride(true);
-            } else if (currentKey == Configuration::ROM_OVERCLOCK) {
-                updateRomOverclock(true); 
-            } else if (currentKey == Configuration::ROM_AUTOSTART) {
-                updateAutoStart(true);         
-            }
-        }
+        
+        updateCoreOverride(false);
         notifySettingsChange(currentKey, currentValue);
     }
     /**
@@ -302,6 +353,23 @@ public:
     std::string getName() override;
 
 public:
+    std::string getDefaultCore(Cache& cache) {
+       //check if we have an override in ini file, if not return the SelectedExec from json
+        if(!settingsMap[currentKey].value.empty())
+            return settingsMap[currentKey].value;
+        else
+        {
+            std::map<std::string, ConsoleData> consoleDataMap = 
+                cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
+
+            // Check if the parentTitle exists in the consoleDataMap
+            if (consoleDataMap.find(currentSystem) != consoleDataMap.end()) {
+                return (consoleDataMap[currentSystem].selectedExec.empty()) ? *cores.begin() : consoleDataMap[currentSystem].selectedExec;
+            }
+            else
+                return "NOT FOUND! Define selectedExec in systems.json";
+        }
+    }
     void getCores(std::string systemName, Cache& cache) {
 
         // Retrieve the systems cache (from memory, if was already read, or file
@@ -326,10 +394,11 @@ public:
 
         // By default we select the first core from the list
         std::string currentCore = (consoleDataMap[systemName].selectedExec.empty()) ? *cores.begin() : consoleDataMap[systemName].selectedExec;
-
-        //*cores.begin();
-        settingsMap[Configuration::CORE_OVERRIDE] = {Configuration::CORE_OVERRIDE, currentCore, true};
-        notifySettingsChange(Configuration::CORE_OVERRIDE, currentCore);
+        //if there is an override we take the override
+        if(!settingsMap[currentKey].value.empty())
+            currentCore = settingsMap[currentKey].value;
+        settingsMap[currentKey] = {currentKey, currentCore, true};
+        notifySettingsChange(currentKey, currentCore);
     }
 };
 
