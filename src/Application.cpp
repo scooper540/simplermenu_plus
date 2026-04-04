@@ -461,28 +461,30 @@ void Application::settingsChanged(const std::string& key, const std::string& val
 
     } else if (key == Configuration::THEME) {
         theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), value, cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT));
-    } else if (key == Configuration::CORE_OVERRIDE) {
-        std::cout << "Calling CORE OVERRIDE " << std::endl;
-        
-        if (state.currentMenuLevel == ROM_SETTINGS) {
-            std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
-
-            if (romPath != "") {
-                 cache.menuCacheUpdateItem(
-                    cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE), 
-                    romPath, value);
-                cache.systemCacheUpdateSelectedExec(
-                    cfg.get(Configuration::HOME_PATH) + "systems.json", 
-                    menu.getSystems()[state.currentSystemIndex].getTitle(), value);
-            }
-        }
-    } 
-    
+    }
     else if (key == Configuration::QUIT) {
         if(value != "INTERNAL") {
             SDL_Quit();
             exit(0);
         }
+    }
+    else if(state.currentMenuLevel == MenuLevel::ROM_SETTINGS)
+    {
+        //change of Core override for a specific ROM. update cache and ini file to have this setting persistant accross new cache generation
+        std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
+        if (romPath != "") 
+        {
+            cache.menuCacheUpdateItem(
+                    cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE), 
+                    romPath, value);
+        }
+    }
+    else if(state.currentMenuLevel == MenuLevel::SYSTEM_SETTINGS)
+    {
+        cache.systemCacheUpdateSelectedExec(
+                    cfg.get(Configuration::HOME_PATH) + "systems.json", 
+                    menu.getSystems()[state.currentSystemIndex].getTitle(), value);
+        return; //don't save ini file in that case
     }
     cfg.set(key, value);
     cfg.saveConfigIni();

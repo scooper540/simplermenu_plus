@@ -149,7 +149,7 @@ std::vector<Settings::I18nSetting> RomSettings::getRomSettings() {
             if (pos != std::string::npos) {
                 try {
                     i18nSettings.push_back({i18n.get(key.substr(pos + 1)), 
-                                            
+                                            settingsMap[key].value
                                             });
                 } catch (boost::property_tree::ptree_bad_path e) {
                     throw ItemNotFoundException("Language translation not found for " 

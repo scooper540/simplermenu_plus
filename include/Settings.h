@@ -339,7 +339,7 @@ public:
     void navigateRight() override {
         std::cout << "navigate Right" << std::endl;
         
-        updateCoreOverride(false);
+        updateCoreOverride(true);
         notifySettingsChange(currentKey, currentValue);
     }
     /**
