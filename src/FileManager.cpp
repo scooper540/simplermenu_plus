@@ -93,7 +93,7 @@ std::vector<std::string> FileManager::getFiles(const std::string& system) {
                 files.push_back(topName);
 
         } else if (topType == DT_DIR) {
-            // Subfolder — grab first valid ROM file inside
+            // Subfolder ï¿½ grab first valid ROM file inside
             DIR* subDir = opendir(topPath.c_str());
             if (!subDir) continue;
 
@@ -110,7 +110,6 @@ std::vector<std::string> FileManager::getFiles(const std::string& system) {
                 std::string ext = getExt(subName);
                 if (excludedExtensions.find(ext) == excludedExtensions.end()) {
                     files.push_back(topName + "/" + subName);
-                    break; // first valid file only, skip .png .txt etc
                 }
             }
             closedir(subDir);

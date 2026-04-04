@@ -65,8 +65,8 @@ ControlMap ControlMapping::convertCommand(const SDL_Event& event) {
         if (event.jbutton.button == getControl("BTN_RIGHT")) return CMD_RIGHT;
         if (event.jbutton.button == getControl("BTN_START")) return CMD_SYS_SETTINGS;
         if (event.jbutton.button == getControl("BTN_SELECT")) return CMD_ROM_SETTINGS;
-        if (event.key.keysym.sym == getControl("BTN_L1")) return CMD_PREV_PAGE;
-        if (event.key.keysym.sym == getControl("BTN_R1")) return CMD_NEXT_PAGE;
+        if (event.jbutton.button == getControl("BTN_L1")) return CMD_PREV_PAGE;
+        if (event.jbutton.button == getControl("BTN_R1")) return CMD_NEXT_PAGE;
     } else if (event.type == SDL_JOYAXISMOTION) {
         // axis mappings
         int axis = event.jaxis.axis;

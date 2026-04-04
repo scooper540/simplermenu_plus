@@ -301,7 +301,7 @@ void RenderComponent::drawMessage(const std::string& msg) {
 }
 void RenderComponent::loadThumbnail(const std::string& romPath) 
 {
-    std::cout << "loadThumbnail called for " << romPath << std::endl;
+    //std::cout << "loadThumbnail called for " << romPath << std::endl;
 
     boost::filesystem::path path(romPath);
     std::string romName = path.stem().string();
@@ -363,6 +363,13 @@ void RenderComponent::loadThumbnail(const std::string& romPath)
         if (tmpThumbnail) {
             SDL_FreeSurface(tmpThumbnail);
         }
+    }
+    else
+    {
+        if (thumbnail != nullptr) 
+            SDL_FreeSurface(thumbnail);
+        thumbnail = SDL_DisplayFormat(tmpThumbnail);
+        SDL_FreeSurface(tmpThumbnail);
     }
 }
 

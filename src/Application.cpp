@@ -234,8 +234,11 @@ void Application::handleCommand(ControlMap cmd) {
             }
             else if (cmd == CMD_PREV_PAGE) { // PREV PAGE
                 const System& system = menu.getSystems()[state.currentSystemIndex];
-                if (state.currentRomIndex > 0) state.currentRomIndex-=theme.getIntValue(Configuration::ITEMS);
-                else state.currentRomIndex = system.getRoms().size() - 1;
+                int items = theme.getIntValue(Configuration::ITEMS);
+                if (state.currentRomIndex >= items)
+                    state.currentRomIndex -= items;
+                else
+                    state.currentRomIndex = 0;
             } else if (cmd == CMD_NEXT_PAGE) { // DOWN
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 state.currentRomIndex = (state.currentRomIndex + theme.getIntValue(Configuration::ITEMS)) % system.getRoms().size();
@@ -460,7 +463,7 @@ void Application::launchRom() {
     std::string execLauncher = cfg.get(Configuration::HOME_PATH) + "launchers/" + cache.getMenuItemByPath(romPath).core;
 
     // Launch emulator
-    std::string command = execLauncher + " '" + romPath + "'";
+    std::string command = "launcher.sh " + execLauncher + " '" + romPath + "'";
     std::cout << "Executing: " << command << std::endl;
 
     setenv("SDL_NOMOUSE", "1", 1);
@@ -520,6 +523,8 @@ void Application::settingsChanged(const std::string& key, const std::string& val
     else if(isApplicationStarted && key == Configuration::UPDATE_CACHES) //renew the cache
     {
         loadCache(true);
+        menu = Menu();
+        populateMenu(menu);
         return;
     }
     if(isApplicationStarted)
@@ -568,10 +573,6 @@ std::string Application::getName() {
 // Private methods
 
 void Application::loadCache(bool force) {
-   
-    // Initialize menu cache field
-    Cache cache;
-
     // Get the path to the cache file from config.ini file
     std::string cacheFilePath = cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE);
 
