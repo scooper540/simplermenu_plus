@@ -315,9 +315,14 @@ public:
     std::string currentRom;
     std::string currentSystem;
     void applyCurrentKey() {
-        std::replace(currentSystem.begin(), currentSystem.end(), '.', '_');
-        std::replace(currentRom.begin(), currentRom.end(), '.', '_');
-        currentKey = "ROM." + currentSystem + "-" + currentRom;
+        currentKey = RomSettings::getKey(currentSystem, currentRom);
+    }
+
+    static std::string getKey(std::string system, std::string rom)
+    {
+        std::replace(system.begin(), system.end(), '.', '_');
+        std::replace(rom.begin(), rom.end(), '.', '_');
+        return "ROM." + system + "-" + rom;
     }
     void updateRomOverclock(bool increase);
     void updateAutoStart(bool increase);

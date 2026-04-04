@@ -458,6 +458,16 @@ void Application::launchRom() {
     std::string romName = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getTitle();
     std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
     std::string systemName = menu.getSystems()[state.currentSystemIndex].getTitle();
+    //find core either default -> get it from cache defaultexec
+    std::string coreName = cache.getMenuItemByPath(romPath).core;
+    if (coreName.empty() || coreName == "default") {
+        cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
+        ConsoleData sysData = cache.getSystemData(systemName);
+        if (!sysData.selectedExec.empty())
+            coreName = sysData.selectedExec;
+        else if (!sysData.execs.empty())
+            coreName = sysData.execs.front();
+    }
     std::cout << "Launching rom: " << systemName << " -> " << romName << std::endl;
 
     std::string execLauncher = cfg.get(Configuration::HOME_PATH) + "launchers/" + cache.getMenuItemByPath(romPath).core;
@@ -592,7 +602,15 @@ void Application::loadCache(bool force) {
         boost::filesystem::create_directories(cacheFilePathObj.string());
 
         cache.menuCacheSave(cacheFilePath, populateCache());
-
+        // check if we have any override for ROM in the ini file
+        for (const auto& cachedItem : cache.menuCacheLoad(cacheFilePath)) {
+            std::string iniKey = RomSettings::getKey(cachedItem.system, cachedItem.rom);
+            std::string savedCore = cfg.get(iniKey);
+            if (!savedCore.empty() && savedCore != "default") {
+                std::cout << "Restoring core override: " << iniKey << " = " << savedCore << std::endl;
+                cache.menuCacheUpdateItem(cacheFilePath, cachedItem.path, savedCore);
+            }
+        }
     } else {
 
         std::cout << "Cache exists, loading from cache file" << std::endl;
