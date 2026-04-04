@@ -167,15 +167,10 @@ void Application::drawCurrentState() {
         case SYSTEM_SETTINGS:
         {
             std::vector<Settings::I18nSetting> systemData;
-
-            auto systems = menu.getSystems();
-            for (const auto& system : systems) {
-                Settings::I18nSetting setting;
-                setting.title = system.getTitle();
-                setting.value = systemSettings.getDefaultCore(system.getTitle(), cache);
-                systemData.push_back(setting);    
-                
-            }
+            Settings::I18nSetting setting;
+            setting.title = systemSettings.currentSystem;
+            setting.value = systemSettings.getDefaultCore(systemSettings.currentSystem, cache);
+            systemData.push_back(setting);
             renderComponent.drawSettingsMenu("System Settings", systemData, currentSystemSettingsIndex, cfg.getSectionSize(Configuration::SYSTEM));
             break;
         }
@@ -377,13 +372,23 @@ void Application::run() {
     int frameCount = 0;
     Uint32 fpsTimer = 0;
 
-    Uint32 frameStart = 0;
-
+    Uint32 frameStart = SDL_GetTicks();
+    int screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
+    Uint32 frameDelay = 1000 / screenRefresh;
+    Uint32 now = SDL_GetTicks();
+    Uint32 elapsed = now - frameStart;
     while (isRunning) {
-        int screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
+        screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
+        frameDelay = 1000 / screenRefresh;
         
-        Uint32 frameDelay = 1000 / screenRefresh;
-
+        now = SDL_GetTicks();
+        elapsed = now - frameStart;
+        if (elapsed < frameDelay) {
+            SDL_Delay(frameDelay - elapsed);  // ← libère le CPU au lieu de busy-wait
+            continue;
+        }
+/*
+        frameStart = SDL_GetTicks();
         // Wait if last frame was drawn too fast
         if (SDL_GetTicks() - frameStart < frameDelay) {
             continue;
@@ -393,7 +398,7 @@ void Application::run() {
         if (frameCount == screenRefresh && ((SDL_GetTicks() - fpsTimer) < 1000)) {
             continue;
         }
-
+*/
         frameStart = SDL_GetTicks();
 
         while (SDL_PollEvent(&event)) {
@@ -604,11 +609,14 @@ void Application::loadCache(bool force) {
         cache.menuCacheSave(cacheFilePath, populateCache());
         // check if we have any override for ROM in the ini file
         for (const auto& cachedItem : cache.menuCacheLoad(cacheFilePath)) {
-            std::string iniKey = RomSettings::getKey(cachedItem.system, cachedItem.rom);
-            std::string savedCore = cfg.get(iniKey);
-            if (!savedCore.empty() && savedCore != "default") {
-                std::cout << "Restoring core override: " << iniKey << " = " << savedCore << std::endl;
-                cache.menuCacheUpdateItem(cacheFilePath, cachedItem.path, savedCore);
+            std::string iniKey = RomSettings::getKey(cachedItem.system, boost::filesystem::path(cachedItem.rom).stem().string());
+            if(cfg.existsKey(iniKey))
+            {
+                std::string savedCore = cfg.get(iniKey);
+                if (!savedCore.empty() && savedCore != "default") {
+                    std::cout << "Restoring core override: " << iniKey << " = " << savedCore << std::endl;
+                    cache.menuCacheUpdateItem(cacheFilePath, cachedItem.path, savedCore);
+                }
             }
         }
     } else {

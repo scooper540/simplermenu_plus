@@ -25,10 +25,8 @@ private:
     SDL_Surface* thumbnail = nullptr;
     SDL_Surface* tmpThumbnail = nullptr;
     SDL_Surface* background = nullptr;
-    SDL_Surface* currentBackground = nullptr;
 
-    std::string lastSection;
-    std::string lastFolder;
+    std::string lastLoadedBackground;
     int lastRom = -1;
 
     // Text scroll
@@ -118,14 +116,17 @@ private:
             SDL_FreeSurface(background);
             background = nullptr;
         }
-
+        lastLoadedBackground = backgroundPath;
         SDL_Surface* loadedSurface = IMG_Load(backgroundPath.c_str());
         if(loadedSurface) {
             //std::cerr << "SCREEN X:" << screen->w << " Y:"<<screen->h << " BACKGROUND X:" << loadedSurface->w << " Y:" << loadedSurface->h << std::endl;
             //resize background picture if not matching screen size
             if (loadedSurface->w != screen->w || loadedSurface->h != screen->h) 
             {
-                loadedSurface = SDL_DisplayFormat(loadedSurface);
+                SDL_Surface* formatted = SDL_DisplayFormat(loadedSurface);
+                SDL_FreeSurface(loadedSurface); 
+                loadedSurface = nullptr;
+
                 SDL_Rect dest = {0, 0, screen->w, screen->h};
                 SDL_Surface* temp = SDL_CreateRGBSurface(
                 SDL_SWSURFACE,        // surface logicielle
@@ -137,24 +138,23 @@ private:
                 screen->format->Bmask,
                 screen->format->Amask
                 );
-                SDL_SoftStretch(loadedSurface, NULL, temp, &dest);
-                SDL_FreeSurface(loadedSurface); 
+                SDL_SoftStretch(formatted, NULL, temp, &dest);
+                SDL_FreeSurface(formatted); 
+                formatted = nullptr;
                 background = SDL_DisplayFormat(temp);
                 SDL_FreeSurface(temp);
+                temp = nullptr;
             }
             else {
                 background = SDL_DisplayFormat(loadedSurface);
-                SDL_FreeSurface(loadedSurface);            
+                SDL_FreeSurface(loadedSurface);       
+                loadedSurface = nullptr;     
             }
             //std::cerr << "NOW SCREEN X:" << screen->w << " Y:"<<screen->h << " BACKGROUND X:" << loadedSurface->w << " Y:" << loadedSurface->h << std::endl;
-  
-            
         }
         if (!background) {
             std::cerr << "Failed to load background: " << IMG_GetError() << std::endl;
         }
-
-        currentBackground = background;
     }
 
     void clearScreen() {
@@ -167,7 +167,7 @@ public:
     ~RenderComponent(); // If needed
 
     void resetValues() {
-        lastFolder = "";
+        lastLoadedBackground = "";
         lastRom = -1;
         selectTime = SDL_GetTicks();
         scrollPixelPosition = 0;

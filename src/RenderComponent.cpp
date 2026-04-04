@@ -20,9 +20,8 @@ RenderComponent::RenderComponent(Configuration& cfg, Theme& theme)
     screenHeight = cfg.getInt(Configuration::SCREEN_HEIGHT);
     screenWidth = cfg.getInt(Configuration::SCREEN_WIDTH);
 
-    lastFolder = "";
+    lastLoadedBackground = "";
     lastRom = -1;
-
     // Implementation
     loadAliases();
 }
@@ -54,9 +53,8 @@ void RenderComponent::drawSystem(const std::string& name, const std::string& pat
     std::string backgroundPath = cfg.getThemePath() + theme.getValue(name + ".logo");
 
     if(theme.getValue(name + ".logo") != "NOT FOUND") {
-	    if(background == nullptr || lastFolder != name) {
+	    if (background == nullptr || lastLoadedBackground != backgroundPath) {
        	    setBackground(backgroundPath);
-            lastFolder = name;
     	}
     	SDL_BlitSurface(background, NULL, screen, NULL);
     } else {
@@ -86,9 +84,8 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
                                  cfg.get(Configuration::THEME) + "/" +
                                  theme.getValue(Configuration::THEME_BACKGROUND);
 
-	if (background == nullptr || lastRom == -1) {
+	if (background == nullptr || lastLoadedBackground != backgroundPath) {
         setBackground(backgroundPath);
-        lastRom = currentRomIndex;
     }
     SDL_BlitSurface(background, NULL, screen, NULL);
 
@@ -149,7 +146,7 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
 
         SDL_SetClipRect(screen, NULL);  // Reset the clip rect
         SDL_FreeSurface(textSurface);
-
+        textSurface = nullptr;
         if (i == currentRomIndex) {
             // Add Rom title 
             int x = theme.getIntValue(Configuration::ART_X) + theme.getIntValue(Configuration::ART_MAX_W)/2;
@@ -218,21 +215,29 @@ void RenderComponent::drawSettingsMenu(
     std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
     int settingsFontSize = 32; // FIXME: size needs to be dynamic
     if(settingsFont == nullptr)
+    {
+        std::cout << "new font" <<std::endl;
         settingsFont = TTF_OpenFont(settingsFontPath.c_str(), settingsFontSize);
-
-    if (background == nullptr || lastRom == -1) {
+    }
+    if (background == nullptr || lastLoadedBackground != backgroundPath) {
+        std::cout << "new background" <<std::endl;
         setBackground(backgroundPath);
     }
     SDL_BlitSurface(background, NULL, screen, NULL);
 
     int titleFontSize = 64; // FIXME: size needs to be dynamic
     if(titleFont == nullptr) 
+    {
+        std::cout << "new font" <<std::endl;
         titleFont = TTF_OpenFont(settingsFontPath.c_str(), titleFontSize);
-
+    }
     SDL_Surface* titleSurface = TTF_RenderText_Blended(titleFont, settingsTitle.c_str(), {255,255,255});
     SDL_Rect titlePos = {screenWidth / 2 - titleSurface->w /2 , 5, 0,0};
     SDL_BlitSurface(titleSurface, nullptr, screen, &titlePos);
+    SDL_FreeSurface(titleSurface);
+    titleSurface = nullptr;
 
+   
     int startX = 10;
     int startY = 92;
     int stepY = 46;
@@ -261,7 +266,8 @@ void RenderComponent::drawSettingsMenu(
         SDL_BlitSurface(textSurface, nullptr, screen, &clipRect);
         SDL_SetClipRect(screen, NULL);
         SDL_FreeSurface(textSurface);
-
+        textSurface = nullptr;
+        
         std::string pageInfo = std::to_string(currentPage + 1) + " / " + std::to_string(total_pages);
         int x = theme.getIntValue(Configuration::TEXT2_X);
         int y = theme.getIntValue(Configuration::TEXT2_Y);
@@ -277,6 +283,7 @@ void RenderComponent::drawSettingsMenu(
         SDL_Rect valueDestRect = {static_cast<Sint16>(screenWidth - valueSurface->w - 10), startY, 0, 0};
         SDL_BlitSurface(valueSurface, nullptr, screen, &valueDestRect);
         SDL_FreeSurface(valueSurface);
+        valueSurface = nullptr;
 
         startY += stepY;
     }
@@ -298,6 +305,7 @@ void RenderComponent::drawMessage(const std::string& msg) {
     
     SDL_BlitSurface(text, NULL, screen, &dst);
     SDL_FreeSurface(text);
+    text = nullptr;
 }
 void RenderComponent::loadThumbnail(const std::string& romPath) 
 {
@@ -321,19 +329,26 @@ void RenderComponent::loadThumbnail(const std::string& romPath)
     }
     // If the thumbnail doesn't exist, simply return and unload previous thumbnail
     if (!boost::filesystem::exists(romImage)) {
-        std::cout << "Thumbnail not found: " << romImage << std::endl;
+        //std::cout << "Thumbnail not found: " << romImage << std::endl;
         if(thumbnail != nullptr)
             SDL_FreeSurface(thumbnail);
         thumbnail = nullptr;
         return;
     }
-
+    if(thumbnail != nullptr)
+    {
+        SDL_FreeSurface(thumbnail);
+        thumbnail = nullptr;
+    }
+    
+    if(tmpThumbnail != nullptr) //error when loading thumbnail image
+    { 
+        SDL_FreeSurface(tmpThumbnail);
+        tmpThumbnail = nullptr;
+    }
     tmpThumbnail = IMG_Load(romImage.c_str());
     if(tmpThumbnail == nullptr) //error when loading thumbnail image
     { 
-        if(thumbnail != nullptr)
-            SDL_FreeSurface(thumbnail);
-        thumbnail = nullptr;
         return;
     }
     int thumbnailWidth = theme.getIntValue(Configuration::ART_MAX_W);
@@ -342,7 +357,10 @@ void RenderComponent::loadThumbnail(const std::string& romPath)
     // Check if the thumbnail needs to be resized
     if (tmpThumbnail->w != thumbnailWidth || tmpThumbnail->h != thumbnailHeight) 
     {
-        tmpThumbnail = SDL_DisplayFormat(tmpThumbnail);
+        SDL_Surface* formatted = SDL_DisplayFormat(tmpThumbnail);
+        SDL_FreeSurface(tmpThumbnail);
+        tmpThumbnail = nullptr;
+        //tmpThumbnail = SDL_DisplayFormat(tmpThumbnail);
         SDL_Rect dest = {0, 0, thumbnailWidth, thumbnailHeight};
         SDL_Surface* temp = SDL_CreateRGBSurface(
                 SDL_SWSURFACE,        // surface logicielle
@@ -354,22 +372,35 @@ void RenderComponent::loadThumbnail(const std::string& romPath)
                 screen->format->Bmask,
                 screen->format->Amask
         );
-        SDL_SoftStretch(tmpThumbnail, NULL, temp, &dest);
+        SDL_SoftStretch(formatted, NULL, temp, &dest);
+        //SDL_BlitSurface(formatted, NULL, temp, &dest);
+        if (thumbnail) {
+            SDL_FreeSurface(thumbnail);
+            thumbnail = nullptr;
+        }
         thumbnail = SDL_DisplayFormat(temp);
 
         if (temp) {
             SDL_FreeSurface(temp);
+            temp = nullptr;
         }
         if (tmpThumbnail) {
             SDL_FreeSurface(tmpThumbnail);
+            tmpThumbnail = nullptr;
+        }
+        if (formatted) {
+            SDL_FreeSurface(formatted);
+            formatted = nullptr;
         }
     }
     else
     {
         if (thumbnail != nullptr) 
             SDL_FreeSurface(thumbnail);
+        thumbnail = nullptr;
         thumbnail = SDL_DisplayFormat(tmpThumbnail);
         SDL_FreeSurface(tmpThumbnail);
+        tmpThumbnail = nullptr;
     }
 }
 
@@ -386,15 +417,16 @@ void RenderComponent::printFPS(int fps) {
 
         SDL_Surface* textSurface = SDL_DisplayFormatAlpha(rawTextSurface);
         SDL_FreeSurface(rawTextSurface);
-
+        rawTextSurface = nullptr;
         if(!textSurface) {
             return;
         }
 
         SDL_Rect destRect = {screenWidth - textSurface->w - 10, 10, 0, 0};  // Position for page counter
-	SDL_BlitSurface(textSurface, NULL, screen, &destRect);
+	    SDL_BlitSurface(textSurface, NULL, screen, &destRect);
 
         SDL_FreeSurface(textSurface);
+        textSurface = nullptr;
     }
 }
 

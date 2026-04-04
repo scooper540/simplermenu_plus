@@ -6,7 +6,7 @@ CROSS_COMPILE = arm-linux-gnueabihf-
 # Compiler
 CC = $(CROSS_COMPILE)g++
 LINKER   = $(CROSS_COMPILE) g++
-CFLAGS += -fdata-sections -ffunction-sections -fPIC -flto -Wall
+CFLAGS += -fdata-sections -ffunction-sections -fPIC -flto -Wall 
 #-Ofast
 LIBS += -lSDL -lSDL_image -lSDL_ttf -lSDL_gfx -lz -lpthread -lm -lboost_locale -lboost_filesystem -lasound
 
@@ -27,14 +27,14 @@ OBJECTS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(OBJECTS))
 
 rm = rm -f
 
-all: clean remove prepare $(BINDIR)/$(TARGET) $(OBJECTS)
+all: prepare $(BINDIR)/$(TARGET) $(OBJECTS)
 
 prepare:
 	mkdir -p $(BINDIR)
 	mkdir -p $(OBJDIR)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) $(LIBS) -o $@
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	@echo "Linking complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp

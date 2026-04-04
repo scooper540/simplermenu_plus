@@ -163,7 +163,10 @@ public:
         //std::cout << "Size of " << section << ": " <<mainPt.get_child(section).size() << std::endl;
         return mainPt.get_child(section).size();
     }
-
+    bool existsKey(const std::string& key)
+    {
+        return mainPt.get_optional<std::string>(key).has_value();
+    }
     boost::property_tree::ptree getSection(const std::string& section) {
         return mainPt.get_child(section);
     }
