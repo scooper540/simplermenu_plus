@@ -14,6 +14,8 @@ enum ControlMap {
     CMD_BACK,
     CMD_SYS_SETTINGS,
     CMD_ROM_SETTINGS,
+    CMD_PREV_PAGE,
+    CMD_NEXT_PAGE,
     CMD_NONE
 };
 

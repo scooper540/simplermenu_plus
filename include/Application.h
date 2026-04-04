@@ -63,6 +63,7 @@ private:
     int currentSettingsValue = 0;
 
     bool isButtonHeld;
+    bool isApplicationStarted;
     SDL_Event lastHeldEvent;
     unsigned int repeatStartTime;
     unsigned int repeatInterval;

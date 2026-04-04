@@ -16,6 +16,9 @@ class RenderComponent {
 private:
     SDL_Surface* screen;
     TTF_Font* font;
+    TTF_Font* settingsFont = nullptr;
+    TTF_Font* titleFont = nullptr;
+
     Configuration& cfg;
     Theme& theme;
     HelperUtils helper;
@@ -42,7 +45,6 @@ private:
 
     std::string currentBackgroundPath;
 
-    static std::unordered_map<std::string, SDL_Surface*> thumbnailCache;
     static std::unordered_map<std::string, std::string> aliasMap;
 
     // Common method to render text on screen
@@ -223,6 +225,7 @@ public:
     void loadThumbnail(const std::string& romPath);
     void printFPS(int fps);
     void loadAliases();
+    void drawMessage(const std::string& msg);
     std::string getAlias(const std::string& title);
     
     void update();

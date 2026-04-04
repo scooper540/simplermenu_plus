@@ -18,7 +18,11 @@
 #include "Application.h"
 #include "Exception.h"
 
+#ifdef POWKIDDY
 Application::Application() : Application(".", "./.state") {}
+#else
+Application::Application() : Application("/userdata/system/configs/simplermenu_plus", "/userdata/system/configs/simplermenu_plus/.state") {}
+#endif
 Application::Application(const std::string& szBasePath, const std::string& szStateFile) 
     : i18n(szBasePath + "/i18n.ini"),
       cfg(szBasePath + "/config.ini", 
@@ -30,7 +34,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
       systemSettings(cfg, i18n, 0, 100, 5),
       romSettings(cfg, i18n, 0, 100, 5)
  {
-
+    isApplicationStarted = false;
     // Observe settings changes
     appSettings.attach(this);
     systemSettings.attach(this);
@@ -43,6 +47,10 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
     systemSettings.initializeSettings();
     appSettings.initializeSettings();
 
+    //initialize display at the begin to be able to display a building rom list during cache generation
+    renderComponent.initialize();
+
+#ifndef POWKIDDY
     bool rebuildCache = false;
     try {
         state = cfg.loadState();
@@ -66,7 +74,6 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         cfg.saveState(state);
 
         rebuildCache = true;
-        
     }
 
     if (rebuildCache) {
@@ -80,7 +87,24 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         loadCache(false);
         
     }
+#else
+    try {
+        state = cfg.loadState();
+        std::cout << "State loaded: " << state.currentMenuLevel << std::endl;
+        std::cout << "Folder: " << state.currentSystemIndex << std::endl;
+        std::cout << "Rom: " << state.currentRomIndex << std::endl;
 
+    } catch (const StateNotFoundException& e) {
+        std::cout << "State not found, using default values" << std::endl;
+        state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
+        state.currentSystemIndex = 0;
+        state.currentRomIndex = 0;
+        state.launcherCallback = false;
+        cfg.saveState(state);
+    }
+    loadCache(false);
+
+#endif
     if (state.launcherCallback) {
         // If we are coming from a launcher callback, we need to reset the state
         std::cout << "Launcher callback processed" << std::endl;
@@ -92,8 +116,6 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
     populateMenu(menu);
 
     theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME), cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT));
-
-    renderComponent.initialize();
 
     // Initialize joystick
 #ifndef POWKIDDY
@@ -113,7 +135,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
             std::cout << "Number of Buttons: " << SDL_JoystickNumButtons(joystick) << std::endl;
         }
     }
-#endif    
+#endif
 }
 
 void Application::drawCurrentState() {
@@ -209,6 +231,14 @@ void Application::handleCommand(ControlMap cmd) {
             } else if (cmd == CMD_DOWN) { // DOWN
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 state.currentRomIndex = (state.currentRomIndex + 1) % system.getRoms().size();
+            }
+            else if (cmd == CMD_PREV_PAGE) { // PREV PAGE
+                const System& system = menu.getSystems()[state.currentSystemIndex];
+                if (state.currentRomIndex > 0) state.currentRomIndex-=theme.getIntValue(Configuration::ITEMS);
+                else state.currentRomIndex = system.getRoms().size() - 1;
+            } else if (cmd == CMD_NEXT_PAGE) { // DOWN
+                const System& system = menu.getSystems()[state.currentSystemIndex];
+                state.currentRomIndex = (state.currentRomIndex + theme.getIntValue(Configuration::ITEMS)) % system.getRoms().size();
             } else if (cmd == CMD_ENTER) { // ENTER
                 std::cout << "execute rom" << std::endl;
                 launchRom();
@@ -336,6 +366,7 @@ bool Application::isInteger(const std::string &s) {
 }
 
 void Application::run() {
+    isApplicationStarted = true;
     bool isRunning = true;
     SDL_Event event;
 
@@ -468,7 +499,7 @@ void Application::settingsChanged(const std::string& key, const std::string& val
             exit(0);
         }
     }
-    else if(state.currentMenuLevel == MenuLevel::ROM_SETTINGS)
+    else if(isApplicationStarted && state.currentMenuLevel == MenuLevel::ROM_SETTINGS)
     {
         //change of Core override for a specific ROM. update cache and ini file to have this setting persistant accross new cache generation
         std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
@@ -479,15 +510,23 @@ void Application::settingsChanged(const std::string& key, const std::string& val
                     romPath, value);
         }
     }
-    else if(state.currentMenuLevel == MenuLevel::SYSTEM_SETTINGS)
+    else if(isApplicationStarted && state.currentMenuLevel == MenuLevel::SYSTEM_SETTINGS)
     {
         cache.systemCacheUpdateSelectedExec(
                     cfg.get(Configuration::HOME_PATH) + "systems.json", 
                     menu.getSystems()[state.currentSystemIndex].getTitle(), value);
         return; //don't save ini file in that case
     }
-    cfg.set(key, value);
-    cfg.saveConfigIni();
+    else if(isApplicationStarted && key == Configuration::UPDATE_CACHES) //renew the cache
+    {
+        loadCache(true);
+        return;
+    }
+    if(isApplicationStarted)
+    {
+        cfg.set(key, value);
+        cfg.saveConfigIni();
+    }
 }
 
 /////////////////
@@ -539,6 +578,8 @@ void Application::loadCache(bool force) {
     if (force || !cache.menuCacheExists(cacheFilePath)) {
         // Cache does not exist or force update is requested:
         // Read all sections and create a new cache
+        renderComponent.drawMessage("Creating ROM list, please wait...");
+        renderComponent.update();
 
         std::cout << "Force cache update" << std::endl;
         

@@ -12,8 +12,6 @@
 #include "RenderComponent.h"
 #include "Configuration.h"
 
-std::unordered_map<std::string, SDL_Surface*> RenderComponent::thumbnailCache;
-
 std::unordered_map<std::string, std::string> RenderComponent::aliasMap;
 
 RenderComponent::RenderComponent(Configuration& cfg, Theme& theme) 
@@ -45,6 +43,10 @@ RenderComponent::~RenderComponent() {
     if(screen) {
         SDL_FreeSurface(screen);
     }
+    if(titleFont)
+        TTF_CloseFont(titleFont);
+    if(settingsFont)
+        TTF_CloseFont(settingsFont);
     // Implementation
 }
 
@@ -186,13 +188,15 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
         loadThumbnail(romData[currentRomIndex].second);
         lastRom = currentRomIndex;
     }
-    Sint16 x = theme.getIntValue(Configuration::ART_X); 
-    Sint16 y = theme.getIntValue(Configuration::ART_Y); 
-    Uint16 w = theme.getIntValue(Configuration::ART_MAX_W); 
-    Uint16 h = theme.getIntValue(Configuration::ART_MAX_H); 
-    SDL_Rect destRect = {x, y, w, h};
-    SDL_BlitSurface(thumbnail, nullptr, screen, &destRect);
-
+    if(thumbnail != nullptr)
+    {
+        Sint16 x = theme.getIntValue(Configuration::ART_X); 
+        Sint16 y = theme.getIntValue(Configuration::ART_Y); 
+        Uint16 w = theme.getIntValue(Configuration::ART_MAX_W); 
+        Uint16 h = theme.getIntValue(Configuration::ART_MAX_H); 
+        SDL_Rect destRect = {x, y, w, h};
+        SDL_BlitSurface(thumbnail, nullptr, screen, &destRect);
+    }
     // Add Folder Title
     renderText(systemName, theme.getIntValue(Configuration::TEXT1_X), theme.getIntValue(Configuration::TEXT1_Y), {255, 255, 255}, theme.getIntValue(Configuration::TEXT2_ALIGNMENT)); 
 }
@@ -213,8 +217,8 @@ void RenderComponent::drawSettingsMenu(
     std::string backgroundPath = cfg.get(Configuration::HOME_PATH) + "assets/settings.png";
     std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
     int settingsFontSize = 32; // FIXME: size needs to be dynamic
-
-    TTF_Font* settingsFont = TTF_OpenFont(settingsFontPath.c_str(), settingsFontSize);
+    if(settingsFont == nullptr)
+        settingsFont = TTF_OpenFont(settingsFontPath.c_str(), settingsFontSize);
 
     if (background == nullptr || lastRom == -1) {
         setBackground(backgroundPath);
@@ -222,7 +226,8 @@ void RenderComponent::drawSettingsMenu(
     SDL_BlitSurface(background, NULL, screen, NULL);
 
     int titleFontSize = 64; // FIXME: size needs to be dynamic
-    TTF_Font* titleFont = TTF_OpenFont(settingsFontPath.c_str(), titleFontSize);
+    if(titleFont == nullptr) 
+        titleFont = TTF_OpenFont(settingsFontPath.c_str(), titleFontSize);
 
     SDL_Surface* titleSurface = TTF_RenderText_Blended(titleFont, settingsTitle.c_str(), {255,255,255});
     SDL_Rect titlePos = {screenWidth / 2 - titleSurface->w /2 , 5, 0,0};
@@ -275,73 +280,90 @@ void RenderComponent::drawSettingsMenu(
 
         startY += stepY;
     }
-    TTF_CloseFont(titleFont);
-    TTF_CloseFont(settingsFont);
 }
-
-void RenderComponent::loadThumbnail(const std::string& romPath) {
-    //std::cout << "loadThumbnail called for " << romPath << std::endl;
+void RenderComponent::drawMessage(const std::string& msg) {
+    clearScreen();
+    
+    std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
+    int settingsFontSize = 32; // FIXME: size needs to be dynamic
+    if(settingsFont == nullptr)
+        settingsFont = TTF_OpenFont(settingsFontPath.c_str(), settingsFontSize);
+    if (!settingsFont) return;
+    
+    SDL_Surface* text = TTF_RenderText_Blended(settingsFont, msg.c_str(), {255, 255, 255});
+    
+    SDL_Rect dst;
+    dst.x = (screenWidth  - text->w) / 2;
+    dst.y = (screenHeight - text->h) / 2;
+    
+    SDL_BlitSurface(text, NULL, screen, &dst);
+    SDL_FreeSurface(text);
+}
+void RenderComponent::loadThumbnail(const std::string& romPath) 
+{
+    std::cout << "loadThumbnail called for " << romPath << std::endl;
 
     boost::filesystem::path path(romPath);
-    std::string romNameWithoutExtension = path.stem().string();
-    std::string basePath = path.parent_path().string();
-    std::string imagesPath = cfg.get(Configuration::IMAGES_PATH);
-    std::string thumbnailType = cfg.get(Configuration::THUMBNAIL_TYPE);
+    std::string romName = path.stem().string();
 
-    std::string thumbnailExtension = thumbnailType == "default" ? ".png" : "-" + thumbnailType + ".png";
-    std::string thumbnailPath = basePath + imagesPath + romNameWithoutExtension + thumbnailExtension;
+    boost::filesystem::path imagesDir = path.parent_path() / cfg.get(Configuration::IMAGES_PATH);
+    imagesDir = imagesDir.lexically_normal();
 
-    // If thumbnail is already in cache, set it and return
-    if (thumbnailCache.find(thumbnailPath) != thumbnailCache.end()) {
-        thumbnail = thumbnailCache[thumbnailPath];
+    boost::filesystem::path romImage;
 
-        // std::cout << "loadThumbnail found in cache, returning" << std::endl;
+    if (boost::filesystem::exists(imagesDir)) {
+        for (const auto& entry : boost::filesystem::directory_iterator(imagesDir)) {
+            if (entry.path().stem() == romName) {
+                romImage = entry.path();
+                break;
+            }
+        }
+    }
+    // If the thumbnail doesn't exist, simply return and unload previous thumbnail
+    if (!boost::filesystem::exists(romImage)) {
+        std::cout << "Thumbnail not found: " << romImage << std::endl;
+        if(thumbnail != nullptr)
+            SDL_FreeSurface(thumbnail);
+        thumbnail = nullptr;
         return;
     }
 
-    // If the thumbnail doesn't exist, simply return
-    if (!boost::filesystem::exists(thumbnailPath)) {
-        // std::cout << "Thumbnail not found: " << thumbnailPath << std::endl;
+    tmpThumbnail = IMG_Load(romImage.c_str());
+    if(tmpThumbnail == nullptr) //error when loading thumbnail image
+    { 
+        if(thumbnail != nullptr)
+            SDL_FreeSurface(thumbnail);
+        thumbnail = nullptr;
         return;
     }
-
-    tmpThumbnail = IMG_Load(thumbnailPath.c_str());
-
     int thumbnailWidth = theme.getIntValue(Configuration::ART_MAX_W);
     int thumbnailHeight = theme.getIntValue(Configuration::ART_MAX_H);
 
     // Check if the thumbnail needs to be resized
-    if (tmpThumbnail->w != thumbnailWidth || tmpThumbnail->h != thumbnailHeight) {
-        double scaleX = (double)thumbnailWidth / tmpThumbnail->w;
-        double scaleY = (double)thumbnailHeight / tmpThumbnail->h;
-        double scale = std::min(scaleX, scaleY);
+    if (tmpThumbnail->w != thumbnailWidth || tmpThumbnail->h != thumbnailHeight) 
+    {
+        tmpThumbnail = SDL_DisplayFormat(tmpThumbnail);
+        SDL_Rect dest = {0, 0, thumbnailWidth, thumbnailHeight};
+        SDL_Surface* temp = SDL_CreateRGBSurface(
+                SDL_SWSURFACE,        // surface logicielle
+                thumbnailWidth,
+                thumbnailHeight,
+                screen->format->BitsPerPixel,
+                screen->format->Rmask,
+                screen->format->Gmask,
+                screen->format->Bmask,
+                screen->format->Amask
+        );
+        SDL_SoftStretch(tmpThumbnail, NULL, temp, &dest);
+        thumbnail = SDL_DisplayFormat(temp);
 
-        SDL_Surface* resizedThumbnail = zoomSurface(tmpThumbnail, scale, scale, SMOOTHING_ON);
-
+        if (temp) {
+            SDL_FreeSurface(temp);
+        }
         if (tmpThumbnail) {
             SDL_FreeSurface(tmpThumbnail);
         }
-
-        SDL_Surface* loadedSurface = resizedThumbnail;
-        if (loadedSurface) {
-            tmpThumbnail = SDL_DisplayFormat(loadedSurface);
-            SDL_FreeSurface(loadedSurface);
-        } else {
-            std::cerr << "Failed to load thumbnail: " << IMG_GetError() << std::endl;
-        }
-
-        // // Free the original loaded thumbnail as it's no longer needed
-        // SDL_FreeSurface(tmpThumbnail);
-        // tmpThumbnail = resizedThumbnail;
     }
-
-    if (thumbnailCache.find(thumbnailPath) != thumbnailCache.end()) {
-        thumbnailCache.erase(thumbnailPath);
-    }
-
-    // Cache and set the thumbnail
-    thumbnailCache[thumbnailPath] = tmpThumbnail;
-    thumbnail = tmpThumbnail;
 }
 
 void RenderComponent::printFPS(int fps) {

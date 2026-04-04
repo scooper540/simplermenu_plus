@@ -185,7 +185,6 @@ public:
 
             } else if (currentKey == Configuration::LANGUAGE) {
                 updateLanguage(true);
-
             }  
         }
         notifySettingsChange(currentKey, currentValue);
