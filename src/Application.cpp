@@ -475,7 +475,7 @@ void Application::launchRom() {
     }
     std::cout << "Launching rom: " << systemName << " -> " << romName << std::endl;
 
-    std::string execLauncher = cfg.get(Configuration::HOME_PATH) + "launchers/" + cache.getMenuItemByPath(romPath).core;
+    std::string execLauncher = cfg.get(Configuration::HOME_PATH) + "launchers/" + coreName;
 
     // Launch emulator
     std::string command = "launcher.sh " + execLauncher + " '" + romPath + "'";

@@ -328,12 +328,27 @@ void RenderComponent::loadThumbnail(const std::string& romPath)
         }
     }
     // If the thumbnail doesn't exist, simply return and unload previous thumbnail
-    if (!boost::filesystem::exists(romImage)) {
-        //std::cout << "Thumbnail not found: " << romImage << std::endl;
-        if(thumbnail != nullptr)
-            SDL_FreeSurface(thumbnail);
-        thumbnail = nullptr;
-        return;
+    if (!boost::filesystem::exists(romImage)) 
+    {
+        //try to load one level up in case of rom stored on an individual folder
+        imagesDir = path.parent_path() / ".." / cfg.get(Configuration::IMAGES_PATH);
+        imagesDir = imagesDir.lexically_normal();
+        if (boost::filesystem::exists(imagesDir)) {
+            for (const auto& entry : boost::filesystem::directory_iterator(imagesDir)) {
+                if (entry.path().stem() == romName) {
+                    romImage = entry.path();
+                    break;
+                }
+            }
+        }
+        if (!boost::filesystem::exists(romImage))
+        {
+            //std::cout << "Thumbnail not found: " << romImage << std::endl;
+            if(thumbnail != nullptr)
+                SDL_FreeSurface(thumbnail);
+            thumbnail = nullptr;
+            return;
+        }
     }
     if(thumbnail != nullptr)
     {
