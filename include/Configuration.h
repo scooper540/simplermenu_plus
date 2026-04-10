@@ -112,6 +112,18 @@ public:
     static const std::string TEXT2_ALIGNMENT;
     static const std::string THEME_FONT;
 
+    //battery
+    static const std::string BATT_X;
+    static const std::string BATT_Y;
+    static const std::string BATT_1;
+    static const std::string BATT_2;
+    static const std::string BATT_3;
+    static const std::string BATT_4;
+    static const std::string BATT_5;
+    static const std::string BATT_CHARGING;
+
+    //favorite
+    static const std::string FAVORITE_INDICATOR;
     /////////
     // <SECTION>.INI
     /////////

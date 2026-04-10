@@ -16,6 +16,7 @@ enum ControlMap {
     CMD_ROM_SETTINGS,
     CMD_PREV_PAGE,
     CMD_NEXT_PAGE,
+    CMD_TOGGLE_FAVORITE,
     CMD_NONE
 };
 

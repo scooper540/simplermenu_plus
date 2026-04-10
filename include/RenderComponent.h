@@ -11,6 +11,7 @@
 #include "Theme.h"
 #include "HelperUtils.h"
 #include "Settings.h"
+#include "FavoriteManager.h"
 
 class RenderComponent {
 private:
@@ -21,10 +22,19 @@ private:
 
     Configuration& cfg;
     Theme& theme;
+    FavoritesManager& fav;
+
     HelperUtils helper;
     SDL_Surface* thumbnail = nullptr;
     SDL_Surface* tmpThumbnail = nullptr;
     SDL_Surface* background = nullptr;
+    SDL_Surface* favoritePicture = nullptr;
+    SDL_Surface* battSurface = nullptr;
+    std::string  lastBattImage;
+    int          lastBattLevel = -1;
+    Uint32       battTimer = 0;
+    int          battLevel = 0;
+    bool         battCharging = false;
 
     std::string lastLoadedBackground;
     int lastRom = -1;
@@ -111,7 +121,7 @@ private:
         SDL_BlitSurface(background, NULL, screen, NULL);
     }
 
-    void setBackground(const std::string& backgroundPath) {
+    void  setBackground(const std::string& backgroundPath) {
         if (background) {
             SDL_FreeSurface(background);
             background = nullptr;
@@ -163,7 +173,7 @@ private:
 
 public:
 
-    RenderComponent(Configuration& cfg, Theme& theme);
+    RenderComponent(Configuration& cfg, Theme& theme, FavoritesManager& fav);
     ~RenderComponent(); // If needed
 
     void resetValues() {
@@ -224,6 +234,7 @@ public:
     void drawRomSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
     void loadThumbnail(const std::string& romPath);
     void printFPS(int fps);
+    void printBattery();
     void loadAliases();
     void drawMessage(const std::string& msg);
     std::string getAlias(const std::string& title);

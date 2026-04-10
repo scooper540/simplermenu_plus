@@ -94,6 +94,16 @@ const std::string Configuration::TEXT2_Y = std::string("GENERAL.text2_y");
 const std::string Configuration::TEXT2_ALIGNMENT = std::string("GENERAL.text2_alignment");
 const std::string Configuration::THEME_FONT = std::string("GENERAL.font");
 
+const std::string Configuration::BATT_X = std::string("GENERAL.batt_x");
+const std::string Configuration::BATT_Y = std::string("GENERAL.batt_y");
+const std::string Configuration::BATT_1 = std::string("GENERAL.batt_1");
+const std::string Configuration::BATT_2 = std::string("GENERAL.batt_2");
+const std::string Configuration::BATT_3 = std::string("GENERAL.batt_3");
+const std::string Configuration::BATT_4 = std::string("GENERAL.batt_4");
+const std::string Configuration::BATT_5 = std::string("GENERAL.batt_5");
+const std::string Configuration::BATT_CHARGING = std::string("GENERAL.batt_charging");
+
+const std::string Configuration::FAVORITE_INDICATOR = std::string("GENERAL.favorite_indicator");
 
 /////////
 // <SECTION>.INI

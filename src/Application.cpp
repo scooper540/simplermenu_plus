@@ -29,7 +29,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
           szStateFile),
       theme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME), cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT)),
       controlMapping(cfg),
-      renderComponent(cfg, theme),
+      renderComponent(cfg, theme, favManager),
       appSettings(cfg, i18n, 0, 100, 5),
       systemSettings(cfg, i18n, 0, 100, 5),
       romSettings(cfg, i18n, 0, 100, 5)
@@ -112,10 +112,16 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         cfg.saveState(state);
         
     }
+    favManager.load(
+        cfg.get(Configuration::HOME_PATH) + "favorites.json",
+        cfg.get(Configuration::HOME_PATH) + "history.json"
+    );
 
     populateMenu(menu);
 
     theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME), cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT));
+    
+
 
     // Initialize joystick
 #ifndef POWKIDDY
@@ -136,6 +142,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         }
     }
 #endif
+    
 }
 
 void Application::drawCurrentState() {
@@ -155,6 +162,8 @@ void Application::drawCurrentState() {
             for (const Rom& rom : menu.getSystems()[state.currentSystemIndex].getRoms()) {
                 romData.push_back({rom.getTitle(), rom.getPath()});
             }
+            if(state.currentRomIndex < 0) state.currentRomIndex = 0;
+            if(state.currentRomIndex >= menu.getSystems()[state.currentSystemIndex].getRoms().size() - 1) state.currentRomIndex = menu.getSystems()[state.currentSystemIndex].getRoms().size() - 1;
             renderComponent.drawRomList(menu.getSystems()[state.currentSystemIndex].getTitle(), romData, state.currentRomIndex);
             break;
         }
@@ -202,11 +211,14 @@ void Application::handleCommand(ControlMap cmd) {
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
             } else if (cmd == CMD_ROM_SETTINGS) {
-                state.currentMenuLevel = MenuLevel::SYSTEM_SETTINGS;
-                renderComponent.resetValues();
-                systemSettings.currentSystem = menu.getSystems()[state.currentSystemIndex].getTitle();
-                systemSettings.applyCurrentKey();
-                systemSettings.getCores(systemSettings.currentSystem, cache);
+                if (!menu.getSystems()[state.currentSystemIndex].isVirtual())
+                {
+                    state.currentMenuLevel = MenuLevel::SYSTEM_SETTINGS;
+                    renderComponent.resetValues();
+                    systemSettings.currentSystem = menu.getSystems()[state.currentSystemIndex].getTitle();
+                    systemSettings.applyCurrentKey();
+                    systemSettings.getCores(systemSettings.currentSystem, cache);
+                }
             }
 
             // Save state after navigating, but not when entering the ROM settings
@@ -244,10 +256,20 @@ void Application::handleCommand(ControlMap cmd) {
             } else if (cmd == CMD_ROM_SETTINGS) {
                 state.currentMenuLevel = MenuLevel::ROM_SETTINGS;
                 renderComponent.resetValues();
-                romSettings.currentRom = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getTitle();
-                romSettings.currentSystem = menu.getSystems()[state.currentSystemIndex].getTitle();
+                const Rom& rom = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex];
+                romSettings.currentRom    = rom.getTitle();
+                romSettings.currentPath   = rom.getPath();
+                romSettings.currentSystem = rom.getOriginalSystem().empty() ? menu.getSystems()[state.currentSystemIndex].getTitle() : rom.getOriginalSystem();
                 romSettings.applyCurrentKey();
-                romSettings.getCores(menu.getSystems()[state.currentSystemIndex].getTitle(), cache);
+                romSettings.getCores(romSettings.currentSystem, cache);
+            } else if (cmd == CMD_TOGGLE_FAVORITE) {
+                const Rom& rom = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex];
+                const std::string sysName = menu.getSystems()[state.currentSystemIndex].getTitle();
+                favManager.toggleFavorite(sysName, rom.getTitle(), rom.getPath());
+                //redo menu generation
+                menu = Menu();
+                populateMenu(menu);
+                renderComponent.resetValues();
             }
 
             // Save state after navigating, but not when entering the ROM settings
@@ -285,6 +307,16 @@ void Application::handleCommand(ControlMap cmd) {
             break;
         case ROM_SETTINGS:
             if (cmd == CMD_BACK) { // ESC
+                // Flush pending core override to disk now
+                if (hasPendingCoreOverride && !pendingCoreOverridePath.empty())
+                {
+                    cache.menuCacheUpdateItem(
+                        cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE),
+                        pendingCoreOverridePath, pendingCoreOverrideValue);
+                    hasPendingCoreOverride = false;
+                    pendingCoreOverridePath.clear();
+                    pendingCoreOverrideValue.clear();
+                }
                 state.currentMenuLevel = MenuLevel::MENU_ROM;
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP) { // UP
@@ -438,7 +470,7 @@ void Application::run() {
         drawCurrentState();
 
         renderComponent.printFPS(fps);
-
+        renderComponent.printBattery();
         renderComponent.update();
 
         frameCount++;
@@ -456,13 +488,19 @@ void Application::print_list() {
 
 void Application::launchRom() {
 
+
     // Save application state first and mark it as a launcher callback
     state.launcherCallback = true;
     cfg.saveState(state);
 
-    std::string romName = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getTitle();
-    std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
-    std::string systemName = menu.getSystems()[state.currentSystemIndex].getTitle();
+    const Rom& currentRom = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex];
+    std::string romName = currentRom.getTitle();
+    std::string romPath = currentRom.getPath();
+    std::string systemName = currentRom.getOriginalSystem().empty() ? menu.getSystems()[state.currentSystemIndex].getTitle() : currentRom.getOriginalSystem();
+
+    //add to history
+    favManager.addHistory(systemName, romName, romPath);
+
     //find core either default -> get it from cache defaultexec
     std::string coreName = cache.getMenuItemByPath(romPath).core;
     if (coreName.empty() || coreName == "default") {
@@ -514,19 +552,28 @@ void Application::settingsChanged(const std::string& key, const std::string& val
     else if (key == Configuration::QUIT) {
         if(value != "INTERNAL") {
             SDL_Quit();
+            execlp("shutdown.sh", "shutdown.sh", NULL);
             exit(0);
         }
     }
     else if(isApplicationStarted && state.currentMenuLevel == MenuLevel::ROM_SETTINGS)
     {
-        //change of Core override for a specific ROM. update cache and ini file to have this setting persistant accross new cache generation
+         // Store pending override in memory — flushed to disk on CMD_BACK
         std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
+        if (romPath != "")
+        {
+            hasPendingCoreOverride = true;
+            pendingCoreOverridePath = romPath;
+            pendingCoreOverrideValue = value;
+        }
+        //change of Core override for a specific ROM. update cache and ini file to have this setting persistant accross new cache generation
+    /*    std::string romPath = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex].getPath();
         if (romPath != "") 
         {
             cache.menuCacheUpdateItem(
                     cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE), 
                     romPath, value);
-        }
+        }*/
     }
     else if(isApplicationStarted && state.currentMenuLevel == MenuLevel::SYSTEM_SETTINGS)
     {
@@ -625,9 +672,7 @@ void Application::loadCache(bool force) {
         // Ignore the return value as we are not using it here, just
         // load the cache file contents into the in-memory cache
         cache.menuCacheLoad(cacheFilePath);
-
     }
-
 }
 
 std::vector<CachedMenuItem> Application::populateCache() {
@@ -653,7 +698,23 @@ std::vector<CachedMenuItem> Application::populateCache() {
 }
 
 void Application::populateMenu(Menu& menu) {
-    // Loop through the cached items and populate the Menu structure
+    
+    //virtual systems favorites and history
+    System favSystem("Favorites");
+    for (const auto& f : favManager.getFavorites()) {
+        favSystem.addRom(Rom(f.rom, f.path, f.system));
+    }
+    if (!favManager.getFavorites().empty())
+        menu.addSystem(favSystem);
+
+    System histSystem("History");
+    for (const auto& h : favManager.getHistory()) {
+        histSystem.addRom(Rom(h.rom, h.path, h.system));
+    }
+    if (!favManager.getHistory().empty())
+        menu.addSystem(histSystem);
+
+// Loop through the cached items and populate the Menu structure
     for (const auto& cachedItem : cache.menuCacheLoad(cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE))) {
         // cachedItem should have members: system, filename, path.
 

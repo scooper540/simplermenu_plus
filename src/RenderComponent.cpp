@@ -14,8 +14,8 @@
 
 std::unordered_map<std::string, std::string> RenderComponent::aliasMap;
 
-RenderComponent::RenderComponent(Configuration& cfg, Theme& theme) 
-    : cfg(cfg), theme(theme) {
+RenderComponent::RenderComponent(Configuration& cfg, Theme& theme, FavoritesManager& fav) 
+    : cfg(cfg), theme(theme), fav(fav) {
 
     screenHeight = cfg.getInt(Configuration::SCREEN_HEIGHT);
     screenWidth = cfg.getInt(Configuration::SCREEN_WIDTH);
@@ -36,8 +36,14 @@ RenderComponent::~RenderComponent() {
     if(tmpThumbnail) {
         SDL_FreeSurface(tmpThumbnail);
     }
+    if(favoritePicture) {
+        SDL_FreeSurface(favoritePicture);
+    }
     if(font) {
         TTF_CloseFont(font);
+    }
+    if(battSurface) {
+        SDL_FreeSurface(battSurface);
     }
     if(screen) {
         SDL_FreeSurface(screen);
@@ -194,6 +200,38 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
         SDL_Rect destRect = {x, y, w, h};
         SDL_BlitSurface(thumbnail, nullptr, screen, &destRect);
     }
+
+    if(fav.isFavorite(romData[currentRomIndex].second))
+    {
+        //draw favorite picture   
+        if (favoritePicture == nullptr)
+        {
+            //load picture
+            std::string favImg = theme.getValue(Configuration::FAVORITE_INDICATOR);
+            std::string imgPath = cfg.getThemePath() + favImg;
+            if (imgPath.empty() || favImg == "NOT FOUND")
+            {
+            }
+            else
+            {
+                SDL_Surface* raw = IMG_Load(imgPath.c_str());
+                if (raw) {
+                    //printf("iamge loaded\n");
+                    favoritePicture = SDL_DisplayFormat(raw);
+                    SDL_FreeSurface(raw);
+                }
+            }
+        }
+        if(favoritePicture)
+        {
+            //draw favorite on thumbnail position
+            Sint16 x = theme.getIntValue(Configuration::ART_X); 
+            Sint16 y = theme.getIntValue(Configuration::ART_Y); 
+            SDL_Rect destRect = {x, y, 0, 0};
+            SDL_BlitSurface(favoritePicture, nullptr, screen, &destRect);
+        }
+    }
+
     // Add Folder Title
     renderText(systemName, theme.getIntValue(Configuration::TEXT1_X), theme.getIntValue(Configuration::TEXT1_Y), {255, 255, 255}, theme.getIntValue(Configuration::TEXT2_ALIGNMENT)); 
 }
@@ -478,4 +516,66 @@ void RenderComponent::update() {
         std::cerr << "SDL_Flip failed: " << SDL_GetError() << std::endl;
         return;  // or handle the error as appropriate
     }
+}
+
+void RenderComponent::printBattery() {
+    // Refresh battery level every 30 seconds
+    Uint32 now = SDL_GetTicks();
+    if (now - battTimer >= 30000 || battTimer == 0) {
+        battTimer = now;
+
+        // Read charging status
+        std::ifstream statusFile("/sys/class/power_supply/battery/status");
+        std::string status;
+        if (statusFile >> status)
+            battCharging = (status == "Charging");
+
+        // Read capacity
+        std::ifstream capFile("/sys/class/power_supply/battery/capacity");
+        if (capFile >> battLevel) {
+            if (battLevel < 0)   battLevel = 0;
+            if (battLevel > 100) battLevel = 100;
+        }
+    }
+
+    // Pick the right image key
+    std::string imgKey;
+    if (battCharging) {
+        imgKey = theme.getValue(Configuration::BATT_CHARGING);
+    } else if (battLevel <= 20) {
+        imgKey = theme.getValue(Configuration::BATT_1);
+    } else if (battLevel <= 40) {
+        imgKey = theme.getValue(Configuration::BATT_2);
+    } else if (battLevel <= 60) {
+        imgKey = theme.getValue(Configuration::BATT_3);
+    } else if (battLevel <= 80) {
+        imgKey = theme.getValue(Configuration::BATT_4);
+    } else {
+        imgKey = theme.getValue(Configuration::BATT_5);
+    }
+
+    std::string imgPath = cfg.getThemePath() + imgKey;
+    //printf("imgPath = %s\n", imgPath.c_str());
+    if (imgPath.empty() || imgKey == "NOT FOUND") return;
+    
+    // Load image only if it changed
+    if (imgPath != lastBattImage) {
+        if (battSurface) { SDL_FreeSurface(battSurface); battSurface = nullptr; }
+        //printf("imgPath = %s\n", imgPath.c_str());
+        SDL_Surface* raw = IMG_Load(imgPath.c_str());
+        if (raw) {
+            //printf("iamge loaded\n");
+            battSurface = SDL_DisplayFormat(raw);
+            SDL_FreeSurface(raw);
+        }
+        lastBattImage = imgPath;
+    }
+
+    if (!battSurface) return;
+
+    int x = theme.getIntValue(Configuration::BATT_X);
+    int y = theme.getIntValue(Configuration::BATT_Y);
+    SDL_Rect dest = {(Sint16)x, (Sint16)y, 0, 0};
+    //printf("display at %d %d\n",x,y);
+    SDL_BlitSurface(battSurface, NULL, screen, &dest);
 }

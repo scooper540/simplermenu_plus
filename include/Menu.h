@@ -6,9 +6,10 @@ class Rom {
 private:
     std::string name;
     std::string path;
+    std::string originalSystem;
 public:
-    Rom(const std::string& name, const std::string& path) 
-        : name(name), path(path) {}
+    Rom(const std::string& name, const std::string& path, const std::string& originalSystem = "") 
+        : name(name), path(path), originalSystem(originalSystem) {}
 
     std::string getTitle() const {
         return name;
@@ -17,7 +18,9 @@ public:
     std::string getPath() const {
         return path;
     }
-
+    std::string getOriginalSystem() const { 
+        return originalSystem; 
+    }
 };
 
 class System {
@@ -38,7 +41,9 @@ public:
     const std::vector<Rom>& getRoms() const {
         return roms;
     }
-
+    bool isVirtual() const {
+        return name == "Favorites" || name == "History";
+    }
 };
 
 class Menu {

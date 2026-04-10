@@ -239,8 +239,8 @@ public:
         currentKey = "SYSTEM." + currentSystem;
     }
     void updateCoreOverride(bool increase);
-    void navigateUp() { Settings::navigateUp(); };
-    void navigateDown() { Settings::navigateDown();};
+    void navigateUp() { /*Settings::navigateUp();*/ };
+    void navigateDown() { /*Settings::navigateDown();*/};
     void navigateLeft() override {
         std::cout << "navigate Left" << std::endl;
         updateCoreOverride(false);
@@ -297,10 +297,8 @@ public:
         }
         // By default we select the first core from the list
         std::string currentCore = (consoleDataMap[systemName].selectedExec.empty()) ? *cores.begin() : consoleDataMap[systemName].selectedExec;
-
-        //if there is an override we take the override
-        if(!settingsMap[currentKey].value.empty())
-            currentCore = settingsMap[currentKey].value;
+        // Sync currentValue so updateListSetting finds the right position
+        currentValue = currentCore;
         settingsMap[currentKey] = {currentKey, currentCore, true};
         notifySettingsChange(currentKey, currentCore);
     }
@@ -314,6 +312,7 @@ public:
     std::vector<Settings::I18nSetting> getRomSettings();
     std::string currentRom;
     std::string currentSystem;
+    std::string currentPath;
     void applyCurrentKey() {
         currentKey = RomSettings::getKey(currentSystem, currentRom);
     }
@@ -328,8 +327,8 @@ public:
     void updateAutoStart(bool increase);
     void updateCoreOverride(bool increase);
 
-    void navigateUp() { Settings::navigateUp(); };
-    void navigateDown() { Settings::navigateDown();};
+    void navigateUp() { /* Settings::navigateUp(); */};
+    void navigateDown() { /* Settings::navigateDown();*/};
     void navigateEnter() override {
         std::cout << "RomSettings navigate Enter" << std::endl;
     };
@@ -358,20 +357,26 @@ public:
 
 public:
     std::string getDefaultCore(Cache& cache) {
-       //check if we have an override in ini file, if not return the SelectedExec from json
+        //check if we have an override in ini file, if not return the SelectedExec from json
         if(!settingsMap[currentKey].value.empty())
             return settingsMap[currentKey].value;
         else
         {
-            std::map<std::string, ConsoleData> consoleDataMap = 
-                cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
 
-            // Check if the parentTitle exists in the consoleDataMap
+            // 1. Check in-memory menu cache first (most up-to-date, includes pending overrides)
+            if (!currentPath.empty()) {
+                CachedMenuItem item = cache.getMenuItemByPath(currentPath);
+                if (!item.core.empty()) {
+                    return item.core;
+                }
+            }
+            // 2. Fallback to system default from systems.json
+            std::map<std::string, ConsoleData> consoleDataMap =
+                cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
             if (consoleDataMap.find(currentSystem) != consoleDataMap.end()) {
                 return (consoleDataMap[currentSystem].selectedExec.empty()) ? *cores.begin() : consoleDataMap[currentSystem].selectedExec;
             }
-            else
-                return "NOT FOUND! Define selectedExec in systems.json";
+            return "NOT FOUND! Define selectedExec in systems.json";
         }
     }
     void getCores(std::string systemName, Cache& cache) {
@@ -396,14 +401,18 @@ public:
             }
         }
 
-        // By default we select the first core from the list
+        // 1. Start with system default (selectedExec or first core)
         std::string currentCore = (consoleDataMap[systemName].selectedExec.empty()) ? *cores.begin() : consoleDataMap[systemName].selectedExec;
-        //if there is an override we take the override
-        if(!settingsMap[currentKey].value.empty())
-            currentCore = settingsMap[currentKey].value;
+        // 2. Check in-memory menu cache for a ROM-level override (most up-to-date)
+        if (!currentPath.empty()) {
+            CachedMenuItem item = cache.getMenuItemByPath(currentPath);
+            if (!item.core.empty()) {
+                currentCore = item.core;
+            }
+        }
+        // Sync currentValue so updateListSetting can find the right position in the list
+        currentValue = currentCore;
         settingsMap[currentKey] = {currentKey, currentCore, true};
         notifySettingsChange(currentKey, currentCore);
     }
 };
-
-

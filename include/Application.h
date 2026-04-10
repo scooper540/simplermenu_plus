@@ -25,6 +25,7 @@
 #include "HelperUtils.h"
 #include "Settings.h"
 #include "I18n.h"
+#include "FavoriteManager.h"
 
 namespace pt = boost::property_tree;
 
@@ -52,6 +53,8 @@ private:
     RenderComponent renderComponent;
 
     HelperUtils helper;
+    
+    FavoritesManager favManager;
 
     std::vector<ILanguageObserver *> langObservers;
 
@@ -61,7 +64,12 @@ private:
     int currentSystemSettingsIndex = 0;
     int currentRomSettingsIndex = 0;
     int currentSettingsValue = 0;
+    // Pending core override — flushed to disk only on CMD_BACK from ROM_SETTINGS
+    bool hasPendingCoreOverride = false;
+    std::string pendingCoreOverridePath;
+    std::string pendingCoreOverrideValue;
 
+    
     bool isButtonHeld;
     bool isApplicationStarted;
     SDL_Event lastHeldEvent;

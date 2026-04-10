@@ -58,7 +58,8 @@ RomSettings::RomSettings(Configuration& cfg, I18n& i18n,
 
 }
 
-void Settings::navigateUp() {
+void Settings::
+navigateUp() {
     std::cout << "navigate Up" << std::endl;
      if (!enabledKeys.empty()) {
         currentIndex--;

@@ -47,6 +47,7 @@ ControlMap ControlMapping::convertCommand(const SDL_Event& event) {
     if (event.type == SDL_KEYDOWN) {
         if (event.key.keysym.sym == getControl("KEY_A")) return CMD_ENTER;
         if (event.key.keysym.sym == getControl("KEY_B")) return CMD_BACK;
+        if (event.key.keysym.sym == getControl("KEY_X")) return CMD_TOGGLE_FAVORITE;
         if (event.key.keysym.sym == getControl("KEY_UP")) return CMD_UP;
         if (event.key.keysym.sym == getControl("KEY_DOWN")) return CMD_DOWN;
         if (event.key.keysym.sym == getControl("KEY_LEFT")) return CMD_LEFT;
@@ -59,6 +60,7 @@ ControlMap ControlMapping::convertCommand(const SDL_Event& event) {
     if (event.type == SDL_JOYBUTTONDOWN) {
         if (event.jbutton.button == getControl("BTN_A")) return CMD_ENTER;
         if (event.jbutton.button == getControl("BTN_B")) return CMD_BACK;
+        if (event.jbutton.button == getControl("BTN_X")) return CMD_TOGGLE_FAVORITE;
         if (event.jbutton.button == getControl("BTN_UP")) return CMD_UP;
         if (event.jbutton.button == getControl("BTN_DOWN")) return CMD_DOWN;
         if (event.jbutton.button == getControl("BTN_LEFT")) return CMD_LEFT;
