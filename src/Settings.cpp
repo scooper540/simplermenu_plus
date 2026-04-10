@@ -1,5 +1,5 @@
 #include <iostream>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <SDL/SDL.h>
 
 #include <boost/algorithm/string.hpp>
@@ -19,33 +19,47 @@ Settings::Settings(Configuration& cfg, I18n& i18n,
 AppSettings::AppSettings(Configuration& cfg, I18n& i18n, 
                                int minValue, int maxValue, int delta)
     : Settings(cfg, i18n, minValue, maxValue, delta) {
-    defaultKeys = {
+
+        defaultKeys = {
+#ifndef POWKIDDY
         Configuration::VOLUME, Configuration::BRIGHTNESS, Configuration::SCREEN_REFRESH,
         Configuration::SHOW_FPS, Configuration::OVERCLOCK, Configuration::THEME,
         Configuration::THUMBNAIL_TYPE,
         Configuration::USB_MODE, Configuration::WIFI, Configuration::ROTATION,
         Configuration::LANGUAGE,
-        Configuration::UPDATE_CACHES, Configuration::RESTART, 
+        Configuration::UPDATE_CACHES, Configuration::CORE_SETTINGS,
+        Configuration::RESTART, Configuration::QUIT
+#else
+        Configuration::SCREEN_REFRESH, Configuration::SHOW_FPS, Configuration::THEME,
+        Configuration::THUMBNAIL_TYPE,
+        Configuration::LANGUAGE,
+        Configuration::UPDATE_CACHES, 
         Configuration::QUIT
+#endif
     };
 }
 
 SystemSettings::SystemSettings(Configuration& cfg, I18n& i18n, 
                                int minValue, int maxValue, int delta)
     : Settings(cfg, i18n, minValue, maxValue, delta) {
-    generateCoreSettings();
+        defaultKeys = {Configuration::CORE_SELECTION};
 }
 
 RomSettings::RomSettings(Configuration& cfg, I18n& i18n,
                           int minValue, int maxValue, int delta)
         : Settings(cfg, i18n, minValue, maxValue, delta) {
     defaultKeys = {
-        Configuration::ROM_OVERCLOCK, Configuration::ROM_AUTOSTART, Configuration::CORE_OVERRIDE
+#ifndef POWKIDDY
+    Configuration::ROM_OVERCLOCK, Configuration::ROM_AUTOSTART,Configuration::CORE_OVERRIDE
+#else
+    Configuration::CORE_OVERRIDE
+#endif
     };    
 
 }
 
-void Settings::navigateUp() {
+void Settings::
+navigateUp() {
     std::cout << "navigate Up" << std::endl;
      if (!enabledKeys.empty()) {
         currentIndex--;
@@ -95,6 +109,31 @@ std::vector<Settings::I18nSetting> AppSettings::getAppSettings() {
 }
 
 std::vector<Settings::I18nSetting> SystemSettings::getSystemSettings() {
+    std::vector<I18nSetting> i18nSettings;
+
+    // FIXME: REDO this whole method
+    for (const auto& key : enabledKeys) {
+
+        if (key.find("SYSTEM.") == 0) {
+        
+            size_t pos = key.find_last_of(".");
+            
+            if (pos != std::string::npos) {
+                try {
+                    i18nSettings.push_back({i18n.get(key.substr(pos + 1)), 
+                                            settingsMap[key].value
+                                            });
+                } catch (boost::property_tree::ptree_bad_path e) {
+                    throw ItemNotFoundException("Language translation not found for " 
+                    + key + " in " + i18n.getLang());
+                }
+            } else {
+                throw ItemNotFoundException("Setting key format unknown: " 
+                    + key);
+            }
+        }
+    }
+    // Add the system settings
     return i18nSettings;
 }
 
@@ -136,7 +175,7 @@ void Settings::initializeSettings() {
         cfg.get(Configuration::SCREEN_WIDTH) + "x" +
         cfg.get(Configuration::SCREEN_HEIGHT) + "/";
 
-    for (const auto& entry : std::filesystem::directory_iterator(themePath)) {
+    for (const auto& entry : boost::filesystem::directory_iterator(themePath)) {
         if (entry.is_directory()) {
                 themeFolders.insert(entry.path().filename().string());
         }
@@ -276,6 +315,12 @@ void AppSettings::updateRotation() {
     std::cout << "UPDATING Rotation" << std::endl;
 }
 
+void AppSettings::coreSelectionMenu() {
+    std::cout << "CORE SELECTION..." << std::endl;
+    State currentState = cfg.loadState();
+    currentState.currentMenuLevel = MenuLevel::APP_SETTINGS;
+}
+
 void AppSettings::restartApplication() {
     std::cout << "RESTART..." << std::endl;
 }
@@ -301,27 +346,31 @@ void RomSettings::updateAutoStart(bool increase) {
     std::cout << "UPDATING AUTO START" << std::endl;
 }
 
-void RomSettings::updateCoreSelection(bool increase) {
-    updateListSetting(cores, increase);
-
-    std::cout << "***** current core: " << currentValue << std::endl;
-    std::cout << "***** previous value: " << settingsMap[Configuration::CORE_SELECTION].value << std::endl;
-    settingsMap[Configuration::CORE_SELECTION].value = currentValue;
-
-    std::cout << "UPDATING CORE SELECTION" << std::endl;
-}
-
 void RomSettings::updateCoreOverride(bool increase) {
     updateListSetting(cores, increase);
 
     std::cout << "***** co current core: " << currentValue << std::endl;
-    std::cout << "***** co previous value: " << settingsMap[Configuration::CORE_OVERRIDE].value << std::endl;
-    
-    settingsMap[Configuration::CORE_OVERRIDE].value = currentValue;
+    std::cout << "***** co previous value: " << settingsMap[currentKey].value << std::endl;
+
+    settingsMap[currentKey].value = currentValue;
+
+    notifySettingsChange(currentKey, currentValue);
 
     std::cout << "UPDATING CORE OVERRIDE" << std::endl;
 }
 
+void SystemSettings::updateCoreOverride(bool increase) {
+    updateListSetting(cores, increase);
+
+    std::cout << "***** co current core: " << currentValue << std::endl;
+    std::cout << "***** co previous value: " << settingsMap[currentKey].value << std::endl;
+
+    settingsMap[currentKey].value = currentValue;
+
+    notifySettingsChange(currentKey, currentValue);
+
+    std::cout << "UPDATING DEFAULT SYSTEM CORE OVERRIDE" << std::endl;
+}
 std::string Settings::getCurrentKey() {
     return currentKey;
 };

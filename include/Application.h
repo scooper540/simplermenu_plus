@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <iostream>
 #include <algorithm>
 #include <fstream>
@@ -20,11 +20,12 @@
 #include "Theme.h"
 #include "FileManager.h"
 #include "ControlMapping.h"
-#include "MenuCache.h"
+#include "Cache.h"
 #include "Menu.h"
 #include "HelperUtils.h"
 #include "Settings.h"
 #include "I18n.h"
+#include "FavoriteManager.h"
 
 namespace pt = boost::property_tree;
 
@@ -35,7 +36,7 @@ class RenderComponent;
 class Application : public ISettingsObserver, public ILanguageSubject {
 private:
     Menu menu;
-    MenuCache menuCache;
+    Cache cache;
 
     TTF_Font* font;
     SDL_Joystick *joystick = nullptr;
@@ -52,22 +53,25 @@ private:
     RenderComponent renderComponent;
 
     HelperUtils helper;
+    
+    FavoritesManager favManager;
 
     std::vector<ILanguageObserver *> langObservers;
 
-    // MenuLevel currentMenuLevel = MENU_SECTION;
-
     State state;
 
-    // int currentSectionIndex = 0;
-    // int currentFolderIndex = 0;
-    // int currentRomIndex = 0;
     int currentSettingsIndex = 0;
-    int currentFolderSettingsIndex = 0;
+    int currentSystemSettingsIndex = 0;
     int currentRomSettingsIndex = 0;
     int currentSettingsValue = 0;
+    // Pending core override — flushed to disk only on CMD_BACK from ROM_SETTINGS
+    bool hasPendingCoreOverride = false;
+    std::string pendingCoreOverridePath;
+    std::string pendingCoreOverrideValue;
 
+    
     bool isButtonHeld;
+    bool isApplicationStarted;
     SDL_Event lastHeldEvent;
     unsigned int repeatStartTime;
     unsigned int repeatInterval;
@@ -80,6 +84,7 @@ private:
 
 public:
     Application();
+    Application(const std::string& szBasePath, const std::string& szStateFile);
     // ~Application();
 
     void drawCurrentState();

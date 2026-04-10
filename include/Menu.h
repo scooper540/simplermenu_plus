@@ -6,9 +6,10 @@ class Rom {
 private:
     std::string name;
     std::string path;
+    std::string originalSystem;
 public:
-    Rom(const std::string& name, const std::string& path) 
-        : name(name), path(path) {}
+    Rom(const std::string& name, const std::string& path, const std::string& originalSystem = "") 
+        : name(name), path(path), originalSystem(originalSystem) {}
 
     std::string getTitle() const {
         return name;
@@ -17,15 +18,17 @@ public:
     std::string getPath() const {
         return path;
     }
-
+    std::string getOriginalSystem() const { 
+        return originalSystem; 
+    }
 };
 
-class Folder {
+class System {
 private:
     std::string name;
     std::vector<Rom> roms;
 public:
-    Folder(const std::string& name) : name(name) {}
+    System(const std::string& name) : name(name) {}
 
     void addRom(const Rom& rom) {
         roms.push_back(rom);
@@ -38,58 +41,29 @@ public:
     const std::vector<Rom>& getRoms() const {
         return roms;
     }
-
+    bool isVirtual() const {
+        return name == "Favorites" || name == "History";
+    }
 };
-
-class Section {
-private:
-    std::string name;
-    std::vector<Folder> folders;
-public:
-    Section(const std::string& name) : name(name) {}
-
-    void addFolder(const Folder& folder) {
-        folders.push_back(folder);
-    }
-
-    std::string getTitle() const {
-        return name;
-    }
-
-    Folder* getFolderByName(const std::string& name) {
-        for (auto& sys : folders) {
-            if (sys.getTitle() == name) {
-                return &sys;
-            }
-        }
-        return nullptr;
-    }
-
-    const std::vector<Folder>& getFolders() const {
-        return folders;
-    }
-
-};
-
 
 class Menu {
 private:
-    std::vector<Section> sections;
+    std::vector<System> systems;
 public:
-    void addSection(const Section& section) {
-        sections.push_back(section);
+    void addSystem(const System& system) {
+        systems.push_back(system);
     }
 
-    Section* getSectionByName(const std::string& name) {
-        for (auto& sec : sections) {
-            if (sec.getTitle() == name) {
-                return &sec;
+    System* getSystemByName(const std::string& name) {
+        for (auto& system : systems) {
+            if (system.getTitle() == name) {
+                return &system;
             }
         }
         return nullptr;
     }
 
-    const std::vector<Section>& getSections() const {
-        return sections;
+    const std::vector<System>& getSystems() const {
+        return systems;
     }
 };

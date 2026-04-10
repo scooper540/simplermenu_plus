@@ -47,22 +47,28 @@ ControlMap ControlMapping::convertCommand(const SDL_Event& event) {
     if (event.type == SDL_KEYDOWN) {
         if (event.key.keysym.sym == getControl("KEY_A")) return CMD_ENTER;
         if (event.key.keysym.sym == getControl("KEY_B")) return CMD_BACK;
+        if (event.key.keysym.sym == getControl("KEY_X")) return CMD_TOGGLE_FAVORITE;
         if (event.key.keysym.sym == getControl("KEY_UP")) return CMD_UP;
         if (event.key.keysym.sym == getControl("KEY_DOWN")) return CMD_DOWN;
         if (event.key.keysym.sym == getControl("KEY_LEFT")) return CMD_LEFT;
         if (event.key.keysym.sym == getControl("KEY_RIGHT")) return CMD_RIGHT;
         if (event.key.keysym.sym == getControl("KEY_START")) return CMD_SYS_SETTINGS;
         if (event.key.keysym.sym == getControl("KEY_SELECT")) return CMD_ROM_SETTINGS;
+        if (event.key.keysym.sym == getControl("KEY_L1")) return CMD_PREV_PAGE;
+        if (event.key.keysym.sym == getControl("KEY_R1")) return CMD_NEXT_PAGE;
     }
     if (event.type == SDL_JOYBUTTONDOWN) {
         if (event.jbutton.button == getControl("BTN_A")) return CMD_ENTER;
         if (event.jbutton.button == getControl("BTN_B")) return CMD_BACK;
+        if (event.jbutton.button == getControl("BTN_X")) return CMD_TOGGLE_FAVORITE;
         if (event.jbutton.button == getControl("BTN_UP")) return CMD_UP;
         if (event.jbutton.button == getControl("BTN_DOWN")) return CMD_DOWN;
         if (event.jbutton.button == getControl("BTN_LEFT")) return CMD_LEFT;
         if (event.jbutton.button == getControl("BTN_RIGHT")) return CMD_RIGHT;
         if (event.jbutton.button == getControl("BTN_START")) return CMD_SYS_SETTINGS;
         if (event.jbutton.button == getControl("BTN_SELECT")) return CMD_ROM_SETTINGS;
+        if (event.jbutton.button == getControl("BTN_L1")) return CMD_PREV_PAGE;
+        if (event.jbutton.button == getControl("BTN_R1")) return CMD_NEXT_PAGE;
     } else if (event.type == SDL_JOYAXISMOTION) {
         // axis mappings
         int axis = event.jaxis.axis;

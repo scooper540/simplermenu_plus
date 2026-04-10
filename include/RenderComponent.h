@@ -11,21 +11,32 @@
 #include "Theme.h"
 #include "HelperUtils.h"
 #include "Settings.h"
+#include "FavoriteManager.h"
 
 class RenderComponent {
 private:
     SDL_Surface* screen;
     TTF_Font* font;
+    TTF_Font* settingsFont = nullptr;
+    TTF_Font* titleFont = nullptr;
+
     Configuration& cfg;
     Theme& theme;
+    FavoritesManager& fav;
+
     HelperUtils helper;
     SDL_Surface* thumbnail = nullptr;
     SDL_Surface* tmpThumbnail = nullptr;
     SDL_Surface* background = nullptr;
-    SDL_Surface* currentBackground = nullptr;
+    SDL_Surface* favoritePicture = nullptr;
+    SDL_Surface* battSurface = nullptr;
+    std::string  lastBattImage;
+    int          lastBattLevel = -1;
+    Uint32       battTimer = 0;
+    int          battLevel = 0;
+    bool         battCharging = false;
 
-    std::string lastSection;
-    std::string lastFolder;
+    std::string lastLoadedBackground;
     int lastRom = -1;
 
     // Text scroll
@@ -42,7 +53,6 @@ private:
 
     std::string currentBackgroundPath;
 
-    static std::unordered_map<std::string, SDL_Surface*> thumbnailCache;
     static std::unordered_map<std::string, std::string> aliasMap;
 
     // Common method to render text on screen
@@ -111,24 +121,50 @@ private:
         SDL_BlitSurface(background, NULL, screen, NULL);
     }
 
-    void setBackground(const std::string& backgroundPath) {
+    void  setBackground(const std::string& backgroundPath) {
         if (background) {
             SDL_FreeSurface(background);
             background = nullptr;
         }
-
+        lastLoadedBackground = backgroundPath;
         SDL_Surface* loadedSurface = IMG_Load(backgroundPath.c_str());
         if(loadedSurface) {
-            background = SDL_DisplayFormat(loadedSurface);
-            SDL_FreeSurface(loadedSurface);
-        } else {
-            std::cerr << "Failed to load background: " << IMG_GetError() << std::endl;
+            //std::cerr << "SCREEN X:" << screen->w << " Y:"<<screen->h << " BACKGROUND X:" << loadedSurface->w << " Y:" << loadedSurface->h << std::endl;
+            //resize background picture if not matching screen size
+            if (loadedSurface->w != screen->w || loadedSurface->h != screen->h) 
+            {
+                SDL_Surface* formatted = SDL_DisplayFormat(loadedSurface);
+                SDL_FreeSurface(loadedSurface); 
+                loadedSurface = nullptr;
+
+                SDL_Rect dest = {0, 0, screen->w, screen->h};
+                SDL_Surface* temp = SDL_CreateRGBSurface(
+                SDL_SWSURFACE,        // surface logicielle
+                screen->w,
+                screen->h,
+                screen->format->BitsPerPixel,
+                screen->format->Rmask,
+                screen->format->Gmask,
+                screen->format->Bmask,
+                screen->format->Amask
+                );
+                SDL_SoftStretch(formatted, NULL, temp, &dest);
+                SDL_FreeSurface(formatted); 
+                formatted = nullptr;
+                background = SDL_DisplayFormat(temp);
+                SDL_FreeSurface(temp);
+                temp = nullptr;
+            }
+            else {
+                background = SDL_DisplayFormat(loadedSurface);
+                SDL_FreeSurface(loadedSurface);       
+                loadedSurface = nullptr;     
+            }
+            //std::cerr << "NOW SCREEN X:" << screen->w << " Y:"<<screen->h << " BACKGROUND X:" << loadedSurface->w << " Y:" << loadedSurface->h << std::endl;
         }
         if (!background) {
             std::cerr << "Failed to load background: " << IMG_GetError() << std::endl;
         }
-
-        currentBackground = background;
     }
 
     void clearScreen() {
@@ -137,16 +173,16 @@ private:
 
 public:
 
-    RenderComponent(Configuration& cfg, Theme& theme);
+    RenderComponent(Configuration& cfg, Theme& theme, FavoritesManager& fav);
     ~RenderComponent(); // If needed
 
     void resetValues() {
-        lastSection = "";
-        lastFolder = "";
+        lastLoadedBackground = "";
         lastRom = -1;
         selectTime = SDL_GetTicks();
         scrollPixelPosition = 0;
         scrollEndTime = 0;
+        thumbnail = nullptr;
     }
 
     void initialize() {
@@ -190,14 +226,17 @@ public:
     }
 
     void drawSection(const std::string& name, int numSystems);
-    void drawFolder(const std::string& name, const std::string& path, int numRoms);
-    void drawRomList(const std::string& folderName, const std::vector<std::pair<std::string, std::string>>& romData, int currentRomIndex);
+    void drawSystem(const std::string& name, const std::string& path, int numRoms);
+    void drawRomList(const std::string& systemName, const std::vector<std::pair<std::string, std::string>>& romData, int currentRomIndex);
+    void drawSettingsMenu(const std::string& settingsTitle, const std::vector<Settings::I18nSetting>& settingList, int currentSettingIndex, int sectionSize);
     void drawAppSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
-    void drawFolderSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
+    void drawSystemSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
     void drawRomSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
     void loadThumbnail(const std::string& romPath);
     void printFPS(int fps);
+    void printBattery();
     void loadAliases();
+    void drawMessage(const std::string& msg);
     std::string getAlias(const std::string& title);
     
     void update();

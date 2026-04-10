@@ -10,13 +10,6 @@
 
 #include "State.h"
 
-struct ConsoleData {
-    std::string name;
-    std::vector<std::string> execs;
-    std::vector<std::string> romExts;
-    std::vector<std::string> romDirs;
-};
-
 struct SettingsMenuItem {
     std::string id;
     std::string type;
@@ -76,16 +69,15 @@ public:
     static const std::string ROTATION;
     static const std::string LANGUAGE;
     static const std::string UPDATE_CACHES;
+    static const std::string CORE_SETTINGS;
     static const std::string RESTART;
     static const std::string QUIT;
-
-    // CONFIG . FOLDER section
-    static const std::string CORE_SELECTION;
 
     // CONFIG . GAME section
     static const std::string ROM_OVERCLOCK;
     static const std::string ROM_AUTOSTART;
     static const std::string CORE_OVERRIDE;
+    static const std::string CORE_SELECTION;
 
     /////////
     // THEME.INI
@@ -120,6 +112,18 @@ public:
     static const std::string TEXT2_ALIGNMENT;
     static const std::string THEME_FONT;
 
+    //battery
+    static const std::string BATT_X;
+    static const std::string BATT_Y;
+    static const std::string BATT_1;
+    static const std::string BATT_2;
+    static const std::string BATT_3;
+    static const std::string BATT_4;
+    static const std::string BATT_5;
+    static const std::string BATT_CHARGING;
+
+    //favorite
+    static const std::string FAVORITE_INDICATOR;
     /////////
     // <SECTION>.INI
     /////////
@@ -140,7 +144,7 @@ public:
     //////////
     static const std::string CURRENT_MENU_LEVEL;
     static const std::string CURRENT_SECTION_INDEX;
-    static const std::string CURRENT_FOLDER_INDEX;
+    static const std::string CURRENT_SYSTEM_INDEX;
     static const std::string CURRENT_ROM_INDEX;
     static const std::string LAUNCHER_CALLBACK;
 
@@ -157,7 +161,10 @@ public:
     std::set<std::string> getList(const std::string& id, 
                                   const char delimiter = ',') const;
     std::string getThemePath() const;
-    std::map<std::string, ConsoleData> parseIniFile(const std::string& iniPath);
+    // std::map<std::string, ConsoleData> parseIniFile(const std::string& iniPath);
+
+    // std::map<std::string, ConsoleData> parseSystemsFile(const std::string& jsonPath);
+    // bool updateSelectedExec(const std::string& jsonPath, const std::string& systemName, const std::string& newExec);
 
     void saveConfigIni();
 
@@ -165,9 +172,13 @@ public:
     void saveState(const State& state);
 
     int getSectionSize(std::string section) {
+        //std::cout << "Size of " << section << ": " <<mainPt.get_child(section).size() << std::endl;
         return mainPt.get_child(section).size();
     }
-
+    bool existsKey(const std::string& key)
+    {
+        return mainPt.get_optional<std::string>(key).has_value();
+    }
     boost::property_tree::ptree getSection(const std::string& section) {
         return mainPt.get_child(section);
     }
