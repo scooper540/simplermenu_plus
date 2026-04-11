@@ -17,6 +17,9 @@
 
 #include "Application.h"
 #include "Exception.h"
+#include "platform.h"
+
+#define SCREEN_TIMEOUT_MS 60000 // 60s
 
 #ifdef POWKIDDY
 Application::Application() : Application(".", "./.state") {}
@@ -169,7 +172,7 @@ void Application::drawCurrentState() {
         }
         case APP_SETTINGS:
         {
-            renderComponent.drawSettingsMenu("Settings", appSettings.getAppSettings(), currentSettingsIndex, cfg.getSectionSize(Configuration::APPLICATION));
+            renderComponent.drawSettingsMenu("Settings", appSettings.getAppSettings(), currentSettingsIndex);
 
             break;
         }
@@ -180,7 +183,7 @@ void Application::drawCurrentState() {
             setting.title = systemSettings.currentSystem;
             setting.value = systemSettings.getDefaultCore(systemSettings.currentSystem, cache);
             systemData.push_back(setting);
-            renderComponent.drawSettingsMenu("System Settings", systemData, currentSystemSettingsIndex, cfg.getSectionSize(Configuration::SYSTEM));
+            renderComponent.drawSettingsMenu("System Settings", systemData, currentSystemSettingsIndex);
             break;
         }
         case ROM_SETTINGS:
@@ -190,7 +193,7 @@ void Application::drawCurrentState() {
             setting.title = i18n.get("coreOverride");
             setting.value = romSettings.getDefaultCore(cache); //get selected core for this rom
             romData.push_back(setting);
-            renderComponent.drawSettingsMenu("Game Settings", romData, currentRomSettingsIndex, cfg.getSectionSize(Configuration::GAME));
+            renderComponent.drawSettingsMenu("Game Settings", romData, currentRomSettingsIndex);
             break;
         }
     }
@@ -203,11 +206,11 @@ void Application::handleCommand(ControlMap cmd) {
                 state.currentMenuLevel = MenuLevel::MENU_ROM;
                 state.currentRomIndex = 0;
                 renderComponent.resetValues();
-            } else if (cmd == CMD_UP) { // UP
+            } else if (cmd == CMD_UP || cmd == CMD_RIGHT) { // UP
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 if (state.currentSystemIndex > 0) state.currentSystemIndex--;
                 else state.currentSystemIndex = menu.getSystems().size() - 1;
-            } else if (cmd == CMD_DOWN) { // DOWN
+            } else if (cmd == CMD_DOWN || cmd == CMD_LEFT) { // DOWN
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
             } else if (cmd == CMD_ROM_SETTINGS) {
@@ -408,6 +411,9 @@ void Application::run() {
     int screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
     Uint32 frameDelay = 1000 / screenRefresh;
     Uint32 now = SDL_GetTicks();
+    Uint32 lastInputTime = SDL_GetTicks();
+    bool screenOff = false;
+
     Uint32 elapsed = now - frameStart;
     while (isRunning) {
         screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
@@ -442,6 +448,12 @@ void Application::run() {
                 case SDL_JOYAXISMOTION:
                 case SDL_JOYBUTTONDOWN:
                 case SDL_JOYHATMOTION:
+                    if (screenOff) 
+                    {
+                        std::ofstream(SYS_BACKLIGHT_POWER) << "0";
+                        screenOff = false;
+                    }
+                    lastInputTime = SDL_GetTicks();
                     isButtonHeld = true;
                     lastHeldEvent = event;
                     repeatStartTime = SDL_GetTicks() + 500;
@@ -466,7 +478,11 @@ void Application::run() {
             frameCount = 0;
             fpsTimer = SDL_GetTicks();
         }
-
+        if (!screenOff && SDL_GetTicks() - lastInputTime > SCREEN_TIMEOUT_MS) 
+        {
+            std::ofstream(SYS_BACKLIGHT_POWER) << "1";
+            screenOff = true;
+        }
         drawCurrentState();
 
         renderComponent.printFPS(fps);

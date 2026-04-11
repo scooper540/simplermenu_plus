@@ -113,7 +113,7 @@ public:
         std::cout << "navigate Left" << std::endl;
         if (settingsMap[currentKey].enabled) {
             if (currentKey == Configuration::BRIGHTNESS) {
-                updateInt(false, currentKey, minValue, maxValue, delta);
+                updateBrightness(false);
             
             } else if (currentKey == Configuration::VOLUME) {
                 updateInt(false, currentKey, minValue, maxValue, delta);
@@ -154,7 +154,7 @@ public:
         std::cout << "navigate Right" << std::endl;
         if (settingsMap[currentKey].enabled) {
             if (currentKey == Configuration::BRIGHTNESS) {
-                updateInt(true, currentKey, minValue, maxValue, delta);
+                updateBrightness(true);
 
             } else if (currentKey == Configuration::VOLUME) {
                 updateInt(true, currentKey, minValue, maxValue, delta);
@@ -213,6 +213,7 @@ public:
     void updateUSBMode(bool increase);
     void updateLanguage(bool increase);
     void updateOverclock(bool increase);
+    void updateBrightness(bool increase);
     void updateShowFPS();
     void coreSelectionMenu();
     void restartApplication();

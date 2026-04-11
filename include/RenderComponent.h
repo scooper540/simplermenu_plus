@@ -228,7 +228,7 @@ public:
     void drawSection(const std::string& name, int numSystems);
     void drawSystem(const std::string& name, const std::string& path, int numRoms);
     void drawRomList(const std::string& systemName, const std::vector<std::pair<std::string, std::string>>& romData, int currentRomIndex);
-    void drawSettingsMenu(const std::string& settingsTitle, const std::vector<Settings::I18nSetting>& settingList, int currentSettingIndex, int sectionSize);
+    void drawSettingsMenu(const std::string& settingsTitle, const std::vector<Settings::I18nSetting>& settingList, int currentSettingIndex);
     void drawAppSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
     void drawSystemSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);
     void drawRomSettings(const std::string& settingsTitle, std::vector<Settings::I18nSetting> settingList, int currentSettingIndex);

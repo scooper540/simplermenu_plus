@@ -27,6 +27,7 @@
 #include "I18n.h"
 #include "FavoriteManager.h"
 
+
 namespace pt = boost::property_tree;
 
 class Configuration;
@@ -69,7 +70,6 @@ private:
     std::string pendingCoreOverridePath;
     std::string pendingCoreOverrideValue;
 
-    
     bool isButtonHeld;
     bool isApplicationStarted;
     SDL_Event lastHeldEvent;

@@ -217,7 +217,7 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
                 SDL_Surface* raw = IMG_Load(imgPath.c_str());
                 if (raw) {
                     //printf("iamge loaded\n");
-                    favoritePicture = SDL_DisplayFormat(raw);
+                    favoritePicture = SDL_DisplayFormatAlpha(raw);
                     SDL_FreeSurface(raw);
                 }
             }
@@ -240,10 +240,10 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
 void RenderComponent::drawSettingsMenu(
     const std::string& settingsTitle,
     const std::vector<Settings::I18nSetting>& settingList,
-    int currentSettingIndex,
-    int sectionSize
+    int currentSettingIndex
 ) {
     //verify we are not out of bounds
+    int sectionSize = settingList.size();
     if (!settingList.empty()) {
         currentSettingIndex = std::min(currentSettingIndex, (int)settingList.size() - 1);
     } else {

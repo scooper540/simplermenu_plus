@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/output/simplermenu_plus",
-            "args": [],
+            "args": ["/home/chris/powkiddy/project/simplermenu_plus/output", "/home/chris/powkiddy/project/simplermenu_plus/output/.state"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
