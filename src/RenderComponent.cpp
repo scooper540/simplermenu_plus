@@ -347,46 +347,40 @@ void RenderComponent::drawMessage(const std::string& msg) {
 }
 void RenderComponent::loadThumbnail(const std::string& romPath) 
 {
-    //std::cout << "loadThumbnail called for " << romPath << std::endl;
-
     boost::filesystem::path path(romPath);
     std::string romName = path.stem().string();
+    std::string parentFolderName = path.parent_path().filename().string();
 
-    boost::filesystem::path imagesDir = path.parent_path() / cfg.get(Configuration::IMAGES_PATH);
-    imagesDir = imagesDir.lexically_normal();
+    // Dossiers à scanner : [Dossier actuel]/images et [Dossier parent]/images
+    std::vector<boost::filesystem::path> searchDirs;
+    searchDirs.push_back((path.parent_path() / cfg.get(Configuration::IMAGES_PATH)).lexically_normal());
+    searchDirs.push_back((path.parent_path() / ".." / cfg.get(Configuration::IMAGES_PATH)).lexically_normal());
 
     boost::filesystem::path romImage;
+    bool found = false;
 
-    if (boost::filesystem::exists(imagesDir)) {
-        for (const auto& entry : boost::filesystem::directory_iterator(imagesDir)) {
-            if (entry.path().stem() == romName) {
-                romImage = entry.path();
-                break;
-            }
-        }
-    }
-    // If the thumbnail doesn't exist, simply return and unload previous thumbnail
-    if (!boost::filesystem::exists(romImage)) 
-    {
-        //try to load one level up in case of rom stored on an individual folder
-        imagesDir = path.parent_path() / ".." / cfg.get(Configuration::IMAGES_PATH);
-        imagesDir = imagesDir.lexically_normal();
-        if (boost::filesystem::exists(imagesDir)) {
+    for (const auto& imagesDir : searchDirs) {
+        if (boost::filesystem::exists(imagesDir) && boost::filesystem::is_directory(imagesDir)) {
             for (const auto& entry : boost::filesystem::directory_iterator(imagesDir)) {
-                if (entry.path().stem() == romName) {
+                std::string entryStem = entry.path().stem().string();
+                
+                // Vérifie si l'image correspond au nom de la ROM OU au nom du dossier parent
+                if (entryStem == romName || entryStem == parentFolderName) {
                     romImage = entry.path();
+                    found = true;
                     break;
                 }
             }
         }
-        if (!boost::filesystem::exists(romImage))
-        {
-            //std::cout << "Thumbnail not found: " << romImage << std::endl;
-            if(thumbnail != nullptr)
-                SDL_FreeSurface(thumbnail);
-            thumbnail = nullptr;
-            return;
-        }
+        if (found) break;
+    }
+
+    if (!found) 
+    {
+        if (thumbnail != nullptr)
+            SDL_FreeSurface(thumbnail);
+        thumbnail = nullptr;
+        return;
     }
     if(thumbnail != nullptr)
     {
