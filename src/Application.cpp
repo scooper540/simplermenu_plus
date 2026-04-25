@@ -572,6 +572,15 @@ void Application::settingsChanged(const std::string& key, const std::string& val
             exit(0);
         }
     }
+    else if(key == Configuration::BRIGHTNESS)
+    {            
+        int maxBrightness = 0;
+        std::ifstream(SYS_MAX_BRIGHTNESS) >> maxBrightness;
+        //align currnet key value with max brightness
+        int newBrightness = std::stoi(value) * maxBrightness / 100;
+        std::ofstream(SYS_CURRENT_BRIGHTNESS) << newBrightness;
+        std::cout << "BRIGHTNESS SET TO " << newBrightness << std::endl;
+    }
     else if(isApplicationStarted && state.currentMenuLevel == MenuLevel::ROM_SETTINGS)
     {
          // Store pending override in memory — flushed to disk on CMD_BACK

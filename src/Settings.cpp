@@ -10,8 +10,7 @@
 #include "Settings.h"
 #include "Exception.h"
 
-//platform specific API for brightness for example
-#include "platform.h"
+
 
 Settings::Settings(Configuration& cfg, I18n& i18n,
                    int minValue, int maxValue, int delta) 
@@ -311,13 +310,7 @@ void AppSettings::updateShowFPS() {
 void AppSettings::updateBrightness(bool increase)
 {
     updateInt(increase, currentKey, minValue, maxValue, delta);
-    int maxBrightness = 0;
-    std::ifstream(SYS_MAX_BRIGHTNESS) >> maxBrightness;
-    
-    //align currnet key value with max brightness
-    int newBrightness = std::stoi(currentValue) * maxBrightness / 100;
-    std::cout << "UPDATING BRIGHTNESS TO " << newBrightness << std::endl;
-    std::ofstream(SYS_CURRENT_BRIGHTNESS) << newBrightness;
+    std::cout << "UPDATING BRIGHTNESS " << std::endl;
 }
 
 void AppSettings::updateWifi() {
