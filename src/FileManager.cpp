@@ -26,7 +26,7 @@ std::vector<std::string> FileManager::getFolders(const std::string& path) {
 }
 
 // Retrieve a list of files from a given system (recursive)
-std::vector<std::string> FileManager::getFiles(const std::string& system) {
+std::vector<std::string> FileManager::getFiles(const std::string& system, const std::vector<std::string>& allowedExts) {
 	std::cerr << "ENTER" << std::endl;
     std::vector<std::string> files;
     std::set<std::string> excludedExtensions = 
@@ -44,7 +44,9 @@ std::vector<std::string> FileManager::getFiles(const std::string& system) {
                 }
 
                 std::string ext = entry.path().extension().string();
-                if (excludedExtensions.find(ext) == excludedExtensions.end()) {
+                std::transform(ext.begin(), ext.end(), ext.begin(),
+                            [](unsigned char c){ return std::tolower(c); });
+                if (std::find(allowedExts.begin(), allowedExts.end(), ext) != allowedExts.end()) {
                     files.push_back(entry.path().filename().string());
                 }
             }
@@ -89,8 +91,11 @@ std::vector<std::string> FileManager::getFiles(const std::string& system) {
         if (topType == DT_REG) {
             // ROM directly in system folder
             std::string ext = getExt(topName);
-            if (excludedExtensions.find(ext) == excludedExtensions.end())
+            std::transform(ext.begin(), ext.end(), ext.begin(),
+                            [](unsigned char c){ return std::tolower(c); });
+            if (std::find(allowedExts.begin(), allowedExts.end(), ext) != allowedExts.end()) {
                 files.push_back(topName);
+            }
 
         } else if (topType == DT_DIR) {
             // Subfolder � grab first valid ROM file inside
@@ -108,7 +113,9 @@ std::vector<std::string> FileManager::getFiles(const std::string& system) {
                 if (subType != DT_REG) continue;
 
                 std::string ext = getExt(subName);
-                if (excludedExtensions.find(ext) == excludedExtensions.end()) {
+                std::transform(ext.begin(), ext.end(), ext.begin(),
+                            [](unsigned char c){ return std::tolower(c); });
+                if (std::find(allowedExts.begin(), allowedExts.end(), ext) != allowedExts.end()) {
                     files.push_back(topName + "/" + subName);
                 }
             }

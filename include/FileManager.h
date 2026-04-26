@@ -14,7 +14,7 @@ public:
     FileManager(Configuration& cfg): cfg(cfg) {};
 
     std::vector<std::string> getFolders(const std::string& path);
-    std::vector<std::string> getFiles(const std::string& folder);
+    std::vector<std::string> getFiles(const std::string& folder, const std::vector<std::string>& allowedExts);
 
 };
 

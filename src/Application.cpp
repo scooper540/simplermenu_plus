@@ -272,7 +272,7 @@ void Application::handleCommand(ControlMap cmd) {
                 //redo menu generation
                 menu = Menu();
                 populateMenu(menu);
-                renderComponent.resetValues();
+                //renderComponent.resetValues();
             }
 
             // Save state after navigating, but not when entering the ROM settings
@@ -711,7 +711,7 @@ std::vector<CachedMenuItem> Application::populateCache() {
 
     for (const auto& [consoleName, data] : consoleDataMap) {
         for (const auto& romDir : data.romDirs) {
-            auto files = fileManager.getFiles(romsPath + romDir);
+            auto files = fileManager.getFiles(romsPath + romDir, data.romExts);
             for (const auto& file : files) {
                 std::string romPath = romsPath + "/" + romDir + "/" + file;
                 allCachedItems.push_back({consoleName, file, romPath});
