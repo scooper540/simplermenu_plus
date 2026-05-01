@@ -206,11 +206,11 @@ void Application::handleCommand(ControlMap cmd) {
                 state.currentMenuLevel = MenuLevel::MENU_ROM;
                 state.currentRomIndex = 0;
                 renderComponent.resetValues();
-            } else if (cmd == CMD_UP || cmd == CMD_RIGHT) { // UP
+            } else if (cmd == CMD_UP || cmd == CMD_LEFT) { // UP
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 if (state.currentSystemIndex > 0) state.currentSystemIndex--;
                 else state.currentSystemIndex = menu.getSystems().size() - 1;
-            } else if (cmd == CMD_DOWN || cmd == CMD_LEFT) { // DOWN
+            } else if (cmd == CMD_DOWN || cmd == CMD_RIGHT) { // DOWN
                 const System& system = menu.getSystems()[state.currentSystemIndex];
                 state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
             } else if (cmd == CMD_ROM_SETTINGS) {
