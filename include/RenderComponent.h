@@ -191,10 +191,9 @@ public:
             // Handle error
             exit(1);
         }
-
-        screen = SDL_SetVideoMode(
-            cfg.getInt(Configuration::SCREEN_WIDTH),
-            cfg.getInt(Configuration::SCREEN_HEIGHT),
+	const SDL_VideoInfo* vi;
+        vi = SDL_GetVideoInfo();
+        screen = SDL_SetVideoMode(vi->current_w, vi->current_h,
             cfg.getInt(Configuration::SCREEN_DEPTH),
 #ifndef TRIPLE_BUFFER
             SDL_HWSURFACE | SDL_DOUBLEBUF);
