@@ -48,8 +48,6 @@ public:
     static const std::string THEME_PATH;
     static const std::string ROMS_PATH;
     static const std::string IMAGES_PATH;
-    static const std::string SCREEN_WIDTH;
-    static const std::string SCREEN_HEIGHT;
     static const std::string SCREEN_DEPTH;
     static const std::string GLOBAL_CACHE;
 
@@ -125,6 +123,15 @@ public:
     //favorite
     static const std::string FAVORITE_INDICATOR;
     /////////
+
+    //settings
+    static const std::string SETTINGS_ITEM_FONT_SIZE;
+    static const std::string SETTINGS_TITLE_FONT_SIZE;
+    static const std::string SETTINGS_ITEM_START_X;
+    static const std::string SETTINGS_ITEM_START_Y;
+    static const std::string SETTINGS_ITEM_STEP_Y;
+    static const std::string SETTINGS_ITEM_PER_PAGE;
+    
     // <SECTION>.INI
     /////////
 

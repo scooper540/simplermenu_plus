@@ -25,8 +25,6 @@ const std::string Configuration::HOME_PATH = std::string("GLOBAL.homePath");
 const std::string Configuration::THEME_PATH = std::string("GLOBAL.themePath");
 const std::string Configuration::ROMS_PATH = std::string("GLOBAL.romsPath");
 const std::string Configuration::IMAGES_PATH = std::string("GLOBAL.imagesPath");
-const std::string Configuration::SCREEN_WIDTH = std::string("GLOBAL.screenWidth");
-const std::string Configuration::SCREEN_HEIGHT = std::string("GLOBAL.screenHeight");
 const std::string Configuration::SCREEN_DEPTH = std::string("GLOBAL.screenDepth");
 const std::string Configuration::GLOBAL_CACHE = std::string("GLOBAL.globalCacheJSON");
 
@@ -104,6 +102,13 @@ const std::string Configuration::BATT_5 = std::string("GENERAL.batt_5");
 const std::string Configuration::BATT_CHARGING = std::string("GENERAL.batt_charging");
 
 const std::string Configuration::FAVORITE_INDICATOR = std::string("GENERAL.favorite_indicator");
+
+const std::string Configuration::SETTINGS_ITEM_FONT_SIZE = std::string("GENERAL.settings_item_size");
+const std::string Configuration::SETTINGS_TITLE_FONT_SIZE = std::string("GENERAL.settings_title_size");
+const std::string Configuration::SETTINGS_ITEM_START_X = std::string("GENERAL.settings_item_start_x");
+const std::string Configuration::SETTINGS_ITEM_START_Y = std::string("GENERAL.settings_item_start_y");
+const std::string Configuration::SETTINGS_ITEM_STEP_Y = std::string("GENERAL.settings_item_step_y");
+const std::string Configuration::SETTINGS_ITEM_PER_PAGE = std::string("GENERAL.settings_item_per_page");
 
 /////////
 // <SECTION>.INI
@@ -195,8 +200,7 @@ std::string Configuration::getThemePath() const {
     std::string themePath = 
         get(Configuration::HOME_PATH) +
         get(Configuration::THEME_PATH) +
-        std::to_string(getInt(Configuration::SCREEN_WIDTH)) + "x" +
-        std::to_string(getInt(Configuration::SCREEN_HEIGHT)) + "/" + 
+        + "/" + 
         get(Configuration::THEME) + "/";
         
     return themePath;

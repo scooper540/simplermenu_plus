@@ -5,21 +5,38 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/algorithm/string.hpp>
 
-Theme::Theme(std::string homePath, std::string themePath, std::string name, int screenWidth, int screenHeight) {
-    loadTheme(homePath, themePath, name, screenWidth, screenHeight);
+Theme::Theme(std::string homePath, std::string themePath, std::string name) {
+   // loadTheme(homePath, themePath, name);
 }
 
-void Theme::loadTheme(const std::string& homePath, const std::string& themePath, const std::string& themeName, int screenWidth, int screenHeight) {
+void Theme::setScreenSize(int screenWidth, int screenHeight)
+{
+    m_iScreenWidth = screenWidth;
+    m_iScreenHeight = screenHeight;
+}
+
+void Theme::loadTheme(const std::string& homePath, const std::string& themePath, const std::string& themeName) {
     // Load values from .ini file using Boost.PropertyTree
     boost::property_tree::ptree pt;
 
-    baseThemePath = homePath + "/" + themePath + "/" + std::to_string(screenWidth) + "x" + std::to_string(screenHeight) + "/" + themeName + "/";
+    baseThemePath = homePath + "/" + themePath + "/" + themeName + "/";
+
+    //we take only the GENERAL for our resolution
+    std::string sGeneral = "GENERAL_" + std::to_string(m_iScreenWidth) + std::to_string(m_iScreenHeight);
 
     boost::property_tree::ini_parser::read_ini(baseThemePath + "theme.ini", pt);
 
     for (const auto& section : pt) {
         for (const auto& key_value : section.second) {
-            std::string full_key = section.first + "." + key_value.first;
+            bool bGeneral = false;
+            if(section.first.find("GENERAL") != std::string::npos) //found
+            {
+                if(section.first != sGeneral)
+                    continue;
+                bGeneral = true; 
+            }
+            std::string sectionFirst = bGeneral ? "GENERAL" : section.first;
+            std::string full_key = sectionFirst + "." + key_value.first;
             configValues[full_key] = key_value.second.get_value<std::string>();
         }
     }
@@ -97,7 +114,6 @@ std::string Theme::getThemePath() const {
     //                         std::to_string(cfg.getIntValue(Configuration::SCREEN_HEIGHT)) + "/" +
     //                         cfg.getValue(Configuration::THEME) + "/";
 
-    std::string themePath = getValue(Configuration::HOME_PATH) + "/" + getValue(Configuration::THEME_PATH) + std::to_string(getIntValue(Configuration::SCREEN_WIDTH)) +
-                             "x" + std::to_string(getIntValue(Configuration::SCREEN_HEIGHT)) + "/" + getValue(Configuration::THEME) + "/";
+    std::string themePath = getValue(Configuration::HOME_PATH) + "/" + getValue(Configuration::THEME_PATH) + "/" + getValue(Configuration::THEME) + "/";
     return themePath;
 }

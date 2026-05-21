@@ -17,9 +17,6 @@ std::unordered_map<std::string, std::string> RenderComponent::aliasMap;
 RenderComponent::RenderComponent(Configuration& cfg, Theme& theme, FavoritesManager& fav) 
     : cfg(cfg), theme(theme), fav(fav) {
 
-    screenHeight = cfg.getInt(Configuration::SCREEN_HEIGHT);
-    screenWidth = cfg.getInt(Configuration::SCREEN_WIDTH);
-
     lastLoadedBackground = "";
     lastRom = -1;
     // Implementation
@@ -65,7 +62,7 @@ void RenderComponent::drawSystem(const std::string& name, const std::string& pat
     	SDL_BlitSurface(background, NULL, screen, NULL);
     } else {
         clearScreen();
-        renderText(name, cfg.getInt(Configuration::SCREEN_WIDTH) / 2 , cfg.getInt(Configuration::SCREEN_HEIGHT) / 2 , {255, 255, 255}, 1); 
+        renderText(name, screenWidth / 2 , screenHeight / 2 , {255, 255, 255}, 1); 
     }
 
     // As before, determine x, y positions and styles
@@ -85,8 +82,6 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
 
     std::string backgroundPath = cfg.get(Configuration::HOME_PATH) + "/" +
                                  cfg.get(Configuration::THEME_PATH) + 
-                                 std::to_string(screenWidth) + "x" +
-                                 std::to_string(screenHeight) + "/" +
                                  cfg.get(Configuration::THEME) + "/" +
                                  theme.getValue(Configuration::THEME_BACKGROUND);
 
@@ -251,7 +246,7 @@ void RenderComponent::drawSettingsMenu(
     }
     std::string backgroundPath = cfg.get(Configuration::HOME_PATH) + "assets/settings.png";
     std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
-    int settingsFontSize = 32; // FIXME: size needs to be dynamic
+    int settingsFontSize = theme.getIntValue(Configuration::SETTINGS_ITEM_FONT_SIZE); 
     if(settingsFont == nullptr)
     {
         std::cout << "new font" <<std::endl;
@@ -263,7 +258,7 @@ void RenderComponent::drawSettingsMenu(
     }
     SDL_BlitSurface(background, NULL, screen, NULL);
 
-    int titleFontSize = 64; // FIXME: size needs to be dynamic
+    int titleFontSize = theme.getIntValue(Configuration::SETTINGS_TITLE_FONT_SIZE);
     if(titleFont == nullptr) 
     {
         std::cout << "new font" <<std::endl;
@@ -276,11 +271,12 @@ void RenderComponent::drawSettingsMenu(
     titleSurface = nullptr;
 
    
-    int startX = 10;
-    int startY = 92;
-    int stepY = 46;
-    int itemsPerPage = 8;
 
+    int startX = theme.getIntValue(Configuration::SETTINGS_ITEM_START_X);
+    int startY = theme.getIntValue(Configuration::SETTINGS_ITEM_START_Y);
+    int stepY = theme.getIntValue(Configuration::SETTINGS_ITEM_STEP_Y);
+    int itemsPerPage = theme.getIntValue(Configuration::SETTINGS_ITEM_PER_PAGE);
+    
     int total_pages = (sectionSize + itemsPerPage - 1) / itemsPerPage;
     int currentPage = currentSettingIndex / itemsPerPage;
     int startIndex = currentPage * itemsPerPage;

@@ -174,8 +174,7 @@ void Settings::initializeSettings() {
     std::string themePath = 
         cfg.get(Configuration::HOME_PATH) +
         cfg.get(Configuration::THEME_PATH) +
-        cfg.get(Configuration::SCREEN_WIDTH) + "x" +
-        cfg.get(Configuration::SCREEN_HEIGHT) + "/";
+        "/";
 
     for (const auto& entry : boost::filesystem::directory_iterator(themePath)) {
         if (entry.is_directory()) {

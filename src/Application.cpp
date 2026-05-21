@@ -30,13 +30,27 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
     : i18n(szBasePath + "/i18n.ini"),
       cfg(szBasePath + "/config.ini", 
           szStateFile),
-      theme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME), cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT)),
+      theme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME)),
       controlMapping(cfg),
       renderComponent(cfg, theme, favManager),
       appSettings(cfg, i18n, 0, 100, 5),
       systemSettings(cfg, i18n, 0, 100, 5),
       romSettings(cfg, i18n, 0, 100, 5)
  {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        exit(1);
+    }
+    const SDL_VideoInfo* vi;
+    vi = SDL_GetVideoInfo();
+    int width = vi->current_w;
+    int height = vi->current_h;
+    if(width == 0 || height == 0 || width == 1920 || height == 1080)
+    {
+        width = 480;
+        height = 272;
+    }
+    theme.setScreenSize(width, height);
+    renderComponent.setScreenSize(width, height);
     isApplicationStarted = false;
     // Observe settings changes
     appSettings.attach(this);
@@ -122,7 +136,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
 
     populateMenu(menu);
 
-    theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME), cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT));
+    theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME));
     
 
 
@@ -563,7 +577,7 @@ void Application::settingsChanged(const std::string& key, const std::string& val
         notifyLanguageChange();
 
     } else if (key == Configuration::THEME) {
-        theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), value, cfg.getInt(Configuration::SCREEN_WIDTH), cfg.getInt(Configuration::SCREEN_HEIGHT));
+        theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), value);
     }
     else if (key == Configuration::QUIT) {
         if(value != "INTERNAL") {

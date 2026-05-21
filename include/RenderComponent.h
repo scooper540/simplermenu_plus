@@ -187,19 +187,14 @@ public:
 
     void initialize() {
 
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            // Handle error
-            exit(1);
-        }
-	const SDL_VideoInfo* vi;
-        vi = SDL_GetVideoInfo();
-        screen = SDL_SetVideoMode(vi->current_w, vi->current_h,
+        screen = SDL_SetVideoMode(screenWidth, screenHeight,
             cfg.getInt(Configuration::SCREEN_DEPTH),
 #ifndef TRIPLE_BUFFER
             SDL_HWSURFACE | SDL_DOUBLEBUF);
 #else
             SDL_HWSURFACE | SDL_TRIPLEBUF);
 #endif
+
         if (!screen) {
             std::cerr << "Unable to set video mode: " << SDL_GetError() << std::endl;
             SDL_Quit();
@@ -239,4 +234,10 @@ public:
     std::string getAlias(const std::string& title);
     
     void update();
+
+    void setScreenSize(int screenWidth, int screenHeight)
+    {
+        this->screenWidth = screenWidth;
+        this->screenHeight = screenHeight;
+    }
 };
