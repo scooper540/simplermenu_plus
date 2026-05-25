@@ -62,7 +62,15 @@ public:
         }
         return nullptr;
     }
-
+    int getSystemIndexByName(const std::string& name) {
+        for (int i =0; i < systems.size(); i++)
+        {
+            if (systems[i].getTitle() == name) {
+                return i;
+            }
+        }
+        return 0;
+    }
     const std::vector<System>& getSystems() const {
         return systems;
     }

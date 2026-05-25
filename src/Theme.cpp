@@ -75,7 +75,15 @@ int Theme::getIntValue(const std::string& key) const {
         return 0; // Return a default value or handle the error appropriately
     }
 }
-
+float Theme::getFloatValue(const std::string& key) const {
+    std::string value = getValue(key);
+    try {
+        return std::stof(value);
+    } catch (const std::exception& e) {
+        std::cerr << "Error converting value for key '" << key << "' to float: " << e.what() << std::endl;
+        return 0; // Return a default value or handle the error appropriately
+    }
+}
 std::set<std::string> Theme::getStringList(const std::string& key, char delimiter) const {
     std::set<std::string> result;
     std::string value = getValue(key);

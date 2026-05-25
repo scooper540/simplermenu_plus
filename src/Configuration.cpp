@@ -91,6 +91,7 @@ const std::string Configuration::TEXT2_X= std::string("GENERAL.text2_x");
 const std::string Configuration::TEXT2_Y = std::string("GENERAL.text2_y");
 const std::string Configuration::TEXT2_ALIGNMENT = std::string("GENERAL.text2_alignment");
 const std::string Configuration::THEME_FONT = std::string("GENERAL.font");
+const std::string Configuration::ICON_SCALE = std::string("GENERAL.icon_scale");
 
 const std::string Configuration::BATT_X = std::string("GENERAL.batt_x");
 const std::string Configuration::BATT_Y = std::string("GENERAL.batt_y");

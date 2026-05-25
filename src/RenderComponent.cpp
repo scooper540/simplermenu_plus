@@ -213,6 +213,27 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
                 if (raw) {
                     //printf("iamge loaded\n");
                     favoritePicture = SDL_DisplayFormatAlpha(raw);
+                    float img_scaling = theme.getFloatValue(Configuration::ICON_SCALE);
+                    if(img_scaling != 1)
+                    {
+                        SDL_Rect dest = {0, 0, favoritePicture->w * img_scaling, favoritePicture->h * img_scaling};
+                        SDL_Surface* temp = SDL_CreateRGBSurface(
+                        SDL_SWSURFACE,        // surface logicielle
+                        favoritePicture->w * img_scaling,
+                        favoritePicture->h * img_scaling,
+                        favoritePicture->format->BitsPerPixel,
+                        favoritePicture->format->Rmask,
+                        favoritePicture->format->Gmask,
+                        favoritePicture->format->Bmask,
+                        favoritePicture->format->Amask
+                        );
+                        SDL_SoftStretch(favoritePicture, NULL, temp, &dest);
+                        SDL_FreeSurface(favoritePicture); 
+                        favoritePicture = nullptr;
+                        favoritePicture = SDL_DisplayFormatAlpha(temp);
+                        SDL_FreeSurface(temp);
+                        temp = nullptr;
+                    }
                     SDL_FreeSurface(raw);
                 }
             }
@@ -556,6 +577,28 @@ void RenderComponent::printBattery() {
         if (raw) {
             //printf("iamge loaded\n");
             battSurface = SDL_DisplayFormat(raw);
+            float img_scaling = theme.getFloatValue(Configuration::ICON_SCALE);
+            if(img_scaling != 1)
+            {
+                SDL_Rect dest = {0, 0, battSurface->w * img_scaling, battSurface->h * img_scaling};
+                SDL_Surface* temp = SDL_CreateRGBSurface(
+                SDL_SWSURFACE,        // surface logicielle
+                battSurface->w * img_scaling,
+                battSurface->h * img_scaling,
+                battSurface->format->BitsPerPixel,
+                battSurface->format->Rmask,
+                battSurface->format->Gmask,
+                battSurface->format->Bmask,
+                battSurface->format->Amask
+                );
+                SDL_SoftStretch(battSurface, NULL, temp, &dest);
+                SDL_FreeSurface(battSurface); 
+                battSurface = nullptr;
+                battSurface = SDL_DisplayFormat(temp);
+                SDL_FreeSurface(temp);
+                temp = nullptr;
+            }
+
             SDL_FreeSurface(raw);
         }
         lastBattImage = imgPath;

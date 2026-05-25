@@ -109,7 +109,7 @@ public:
     static const std::string TEXT2_Y;
     static const std::string TEXT2_ALIGNMENT;
     static const std::string THEME_FONT;
-
+    static const std::string ICON_SCALE;
     //battery
     static const std::string BATT_X;
     static const std::string BATT_Y;

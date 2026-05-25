@@ -280,12 +280,15 @@ void Application::handleCommand(ControlMap cmd) {
                 romSettings.applyCurrentKey();
                 romSettings.getCores(romSettings.currentSystem, cache);
             } else if (cmd == CMD_TOGGLE_FAVORITE) {
+                int currentRomIndex = state.currentRomIndex;
                 const Rom& rom = menu.getSystems()[state.currentSystemIndex].getRoms()[state.currentRomIndex];
                 const std::string sysName = menu.getSystems()[state.currentSystemIndex].getTitle();
                 favManager.toggleFavorite(sysName, rom.getTitle(), rom.getPath());
                 //redo menu generation
                 menu = Menu();
                 populateMenu(menu);
+                state.currentRomIndex = currentRomIndex;
+                state.currentSystemIndex = menu.getSystemIndexByName(sysName);
                 //renderComponent.resetValues();
             }
 
