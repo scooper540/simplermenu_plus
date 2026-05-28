@@ -80,10 +80,7 @@ void RenderComponent::drawSystem(const std::string& name, const std::string& pat
 
 void RenderComponent::drawRomList(const std::string& systemName, const std::vector<std::pair<std::string, std::string>>& romData, int currentRomIndex) {
 
-    std::string backgroundPath = cfg.get(Configuration::HOME_PATH) + "/" +
-                                 cfg.get(Configuration::THEME_PATH) + 
-                                 cfg.get(Configuration::THEME) + "/" +
-                                 theme.getValue(Configuration::THEME_BACKGROUND);
+    std::string backgroundPath =  cfg.getThemePath() + theme.getValue(Configuration::THEME_BACKGROUND);
 
 	if (background == nullptr || lastLoadedBackground != backgroundPath) {
         setBackground(backgroundPath);
@@ -112,7 +109,7 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
         std::string alias = getAlias(romData[i].first);
 
         // Determine text width
-        SDL_Surface* textSurface = TTF_RenderText_Blended(font, alias.c_str(), color);
+        SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, alias.c_str(), color);
         int titleWidth = textSurface->w;
 
         // TODO replace clipWidth the correct width based on theme.ini settings
@@ -265,8 +262,8 @@ void RenderComponent::drawSettingsMenu(
     } else {
         currentSettingIndex = 0;
     }
-    std::string backgroundPath = cfg.get(Configuration::HOME_PATH) + "assets/settings.png";
-    std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
+    std::string backgroundPath =  cfg.getThemePath() + theme.getValue(Configuration::SETTINGS_BACKGROUND);
+    std::string settingsFontPath =  cfg.getThemePath() + theme.getValue(Configuration::SETTINGS_FONT);
     int settingsFontSize = theme.getIntValue(Configuration::SETTINGS_ITEM_FONT_SIZE); 
     if(settingsFont == nullptr)
     {
@@ -285,13 +282,11 @@ void RenderComponent::drawSettingsMenu(
         std::cout << "new font" <<std::endl;
         titleFont = TTF_OpenFont(settingsFontPath.c_str(), titleFontSize);
     }
-    SDL_Surface* titleSurface = TTF_RenderText_Blended(titleFont, settingsTitle.c_str(), {255,255,255});
+    SDL_Surface* titleSurface = TTF_RenderUTF8_Blended(titleFont, settingsTitle.c_str(), {255,255,255});
     SDL_Rect titlePos = {screenWidth / 2 - titleSurface->w /2 , 5, 0,0};
     SDL_BlitSurface(titleSurface, nullptr, screen, &titlePos);
     SDL_FreeSurface(titleSurface);
     titleSurface = nullptr;
-
-   
 
     int startX = theme.getIntValue(Configuration::SETTINGS_ITEM_START_X);
     int startY = theme.getIntValue(Configuration::SETTINGS_ITEM_START_Y);
@@ -310,7 +305,7 @@ void RenderComponent::drawSettingsMenu(
             theme.getColor(Configuration::SEL_ITEM_FONT_COLOR) :
             theme.getColor(Configuration::ITEMS_FONT_COLOR);
 
-        SDL_Surface* textSurface = TTF_RenderText_Blended(
+        SDL_Surface* textSurface = TTF_RenderUTF8_Blended(
             settingsFont, 
             settingList[i].title.c_str(),
             color);
@@ -333,7 +328,7 @@ void RenderComponent::drawSettingsMenu(
             settingsValue = ". . .";
         }
 
-        SDL_Surface* valueSurface = TTF_RenderText_Blended(settingsFont, settingsValue.c_str(), color);
+        SDL_Surface* valueSurface = TTF_RenderUTF8_Blended(settingsFont, settingsValue.c_str(), color);
 
         SDL_Rect valueDestRect = {static_cast<Sint16>(screenWidth - valueSurface->w - 10), startY, 0, 0};
         SDL_BlitSurface(valueSurface, nullptr, screen, &valueDestRect);
@@ -343,24 +338,50 @@ void RenderComponent::drawSettingsMenu(
         startY += stepY;
     }
 }
-void RenderComponent::drawMessage(const std::string& msg) {
+void RenderComponent::drawMessage(const std::string& msg)
+{
     clearScreen();
-    
-    std::string settingsFontPath = cfg.get(Configuration::HOME_PATH) + "assets/Akrobat-Bold.ttf";
-    int settingsFontSize = 32; // FIXME: size needs to be dynamic
+
+    std::string settingsFontPath = cfg.getThemePath() + theme.getValue(Configuration::SETTINGS_FONT);
+
+    int settingsFontSize = theme.getIntValue(Configuration::SETTINGS_ITEM_FONT_SIZE);
+
     if(settingsFont == nullptr)
         settingsFont = TTF_OpenFont(settingsFontPath.c_str(), settingsFontSize);
-    if (!settingsFont) return;
-    
-    SDL_Surface* text = TTF_RenderText_Blended(settingsFont, msg.c_str(), {255, 255, 255});
-    
-    SDL_Rect dst;
-    dst.x = (screenWidth  - text->w) / 2;
-    dst.y = (screenHeight - text->h) / 2;
-    
-    SDL_BlitSurface(text, NULL, screen, &dst);
-    SDL_FreeSurface(text);
-    text = nullptr;
+
+    if (!settingsFont)
+        return;
+
+    std::vector<std::string> lines = wrapText(msg);
+
+    int offsetY = 0;
+    int lineHeight = TTF_FontLineSkip(settingsFont);
+
+    for (const std::string& line : lines)
+    {
+        if (line.empty())
+        {
+            offsetY += lineHeight;
+            continue;
+        }
+
+        SDL_Surface* text =
+            TTF_RenderUTF8_Blended(settingsFont, line.c_str(), {255,255,255});
+
+        if (!text)
+            continue;
+
+        SDL_Rect dst;
+
+        dst.x = (screenWidth - text->w) / 2;
+        dst.y = (screenHeight - text->h) / 2 + offsetY;
+
+        SDL_BlitSurface(text, NULL, screen, &dst);
+
+        SDL_FreeSurface(text);
+
+        offsetY += lineHeight;
+    }
 }
 void RenderComponent::loadThumbnail(const std::string& romPath) 
 {
@@ -410,7 +431,8 @@ void RenderComponent::loadThumbnail(const std::string& romPath)
         SDL_FreeSurface(tmpThumbnail);
         tmpThumbnail = nullptr;
     }
-    tmpThumbnail = IMG_Load(romImage.c_str());
+    std::string pathStr = romImage.string();
+    tmpThumbnail = IMG_Load(pathStr.c_str());
     if(tmpThumbnail == nullptr) //error when loading thumbnail image
     { 
         return;
@@ -474,7 +496,7 @@ void RenderComponent::printFPS(int fps) {
 
         std::string fpsText = "FPS: " + std::to_string(fps);
 
-        SDL_Surface* rawTextSurface = TTF_RenderText_Blended(font, fpsText.c_str(), {255,255,0});
+        SDL_Surface* rawTextSurface = TTF_RenderUTF8_Blended(font, fpsText.c_str(), {255,255,0});
         if (!rawTextSurface) {
             return;
         }

@@ -1,0 +1,10 @@
+#!/bin/sh -x
+OLD_ROTATION="$SDL_VIDEO_FBCON_ROTATION"
+unset SDL_VIDEO_FBCON_ROTATION
+RA_CONFIG=/mnt/card/cfw/retroarch/retroarch.cfg
+cp -rf /mnt/card/cfw/resources/freej2me-plus/*.jar /mnt/card/cfw/retroarch/system
+nice -n -20  retroarch -v -c $RA_CONFIG -L /mnt/card/cfw/retroarch/cores/freej2me-plus_libretro.so "$1"
+export SDL_VIDEO_FBCON_ROTATION=$OLD_ROTATION
+# reset fb
+echo "0,1" > /sys/class/graphics/fb0/pan
+echo "0,0" > /sys/class/graphics/fb0/pan

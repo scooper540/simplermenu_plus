@@ -4,7 +4,6 @@
 #include <string>
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
-
 #include "Theme.h"
 
 
@@ -79,7 +78,7 @@ public:
     }
 
     void renderText(SDL_Surface* screen, const std::string& font, const std::string& text, int x, int y, int w, int h, SDL_Color color, int align = LEFT) {
-        SDL_Surface* textSurface = TTF_RenderText_Blended(font == "generalFont" ? generalFont : textFont, text.c_str(), color);
+        SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font == "generalFont" ? generalFont : textFont, text.c_str(), color);
         
         SDL_Rect destRect;
         switch(align) {
@@ -97,9 +96,9 @@ public:
                 destRect.y = y - textSurface->h / 2;
                 break;
         }
-        
         SDL_BlitSurface(textSurface, NULL, screen, &destRect);
         SDL_FreeSurface(textSurface);
+
     }
 
     // Method to set a new font and size
@@ -113,5 +112,6 @@ public:
             std::cerr << "Failed to load font: " << TTF_GetError() << std::endl;
         }
     }
+     
 };
 

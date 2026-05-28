@@ -51,6 +51,11 @@ public:
     static const std::string SCREEN_DEPTH;
     static const std::string GLOBAL_CACHE;
 
+#ifdef _WIN32
+    static const std::string SCREEN_WIDTH;
+    static const std::string SCREEN_HEIGHT;
+#endif
+
     // CONFIG . SYSTEM section
     static const std::string VOLUME;
     static const std::string BRIGHTNESS;
@@ -85,7 +90,9 @@ public:
     static const std::string SEL_ITEM_FONT_COLOR;
     static const std::string ITEMS_FONT_COLOR;
     static const std::string THEME_BACKGROUND;
-
+    static const std::string SETTINGS_BACKGROUND;
+    static const std::string SETTINGS_FONT;
+    
     // THEME . GENERAL section
     static const std::string ART_X;
     static const std::string ART_Y;

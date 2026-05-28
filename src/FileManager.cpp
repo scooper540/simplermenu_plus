@@ -32,7 +32,7 @@ std::vector<std::string> FileManager::getFiles(const std::string& system, const 
     std::set<std::string> excludedExtensions = 
         cfg.getList("GLOBAL.excludedExtensions");
 
-#ifndef POWKIDDY
+#if defined(_WIN32) || !defined(POWKIDDY)
     try {
         for (const auto& entry : boost::filesystem::directory_iterator(system)) {
             if (entry.is_regular_file()) {

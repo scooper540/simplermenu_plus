@@ -57,7 +57,8 @@ private:
 
     // Common method to render text on screen
     void renderText(const std::string& text, Sint16 x, Sint16 y, SDL_Color color, int align = 0) {
-        SDL_Surface* rawTextSurface = TTF_RenderText_Blended(font, text.c_str(), color);
+       
+         SDL_Surface* rawTextSurface = TTF_RenderUTF8_Blended(font, text.c_str(), color);
         if (!rawTextSurface) {
             // Handle the error, e.g., print an error message
             return;
@@ -95,6 +96,40 @@ private:
         SDL_BlitSurface(textSurface, NULL, screen, &destRect);
 
         SDL_FreeSurface(textSurface);  // Free the converted surface
+    }
+    std::vector<std::string> wrapText(const std::string& text)
+    {
+        std::vector<std::string> result;
+        std::string line, word;
+
+
+        for (size_t i = 0; i < text.size(); i++)
+        {
+            char c = text[i];
+
+            // CRLF handling
+            if (c == '\r') continue;
+
+            if (c == '\n')
+            {
+                if (!word.empty())
+                {
+                    result.push_back(word);
+                    word = std::string();
+                }
+                continue;
+            }
+
+            word += c;
+        }
+
+        if (!word.empty())
+            line += word;
+
+        if (!line.empty())
+            result.push_back(line);
+
+        return result;
     }
 
     void old_setBackground(const std::string& backgroundPath) {
@@ -206,10 +241,8 @@ public:
             SDL_Quit();
             exit(1);
         }
-
-        font = TTF_OpenFont(
-            theme.getValue(Configuration::THEME_FONT, true).c_str(),
-            theme.getIntValue("GENERAL.font_size"));
+        std::string fontpath = cfg.getThemePath() + theme.getValue(Configuration::THEME_FONT);
+        font = TTF_OpenFont(fontpath.c_str(),theme.getIntValue("GENERAL.font_size"));
         TTF_SetFontHinting(font, TTF_HINTING_NORMAL);  // or TTF_HINTING_LIGHT, TTF_HINTING_MONO, TTF_HINTING_NONE
         TTF_SetFontKerning(font, 1); // 1 to enable, 0 to disable
 

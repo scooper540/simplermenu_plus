@@ -336,7 +336,10 @@ void AppSettings::quitApplication() {
     std::cout << "QUIT..." << std::endl;
     notifySettingsChange(Configuration::QUIT, "QUIT");
 }
-
+void AppSettings::updateCache() {
+    std::cout << "UPDATE CACHE ..." << std::endl;
+    notifySettingsChange(Configuration::UPDATE_CACHES, "UPDATE_CACHE");
+}
 void RomSettings::updateRomOverclock(bool increase) {
     updateInt(increase, Configuration::ROM_OVERCLOCK, minValue, maxValue, delta);
 

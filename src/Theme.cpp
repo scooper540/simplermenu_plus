@@ -21,19 +21,23 @@ void Theme::loadTheme(const std::string& homePath, const std::string& themePath,
 
     baseThemePath = homePath + "/" + themePath + "/" + themeName + "/";
 
-    //we take only the GENERAL for our resolution
-    std::string sGeneral = "GENERAL_" + std::to_string(m_iScreenWidth) + std::to_string(m_iScreenHeight);
+    //we take only the GENERAL first and we override for our resolution
+    std::string sGeneral = "GENERAL";
+    std::string sGeneralOverride = "GENERAL_" + std::to_string(m_iScreenWidth) + std::to_string(m_iScreenHeight);
 
     boost::property_tree::ini_parser::read_ini(baseThemePath + "theme.ini", pt);
 
-    for (const auto& section : pt) {
-        for (const auto& key_value : section.second) {
+    for (const auto& section : pt) 
+    {
+        for (const auto& key_value : section.second) 
+        {
             bool bGeneral = false;
             if(section.first.find("GENERAL") != std::string::npos) //found
             {
-                if(section.first != sGeneral)
-                    continue;
-                bGeneral = true; 
+                if(section.first == sGeneral || section.first == sGeneralOverride)
+                    bGeneral = true;
+                else
+                    continue; //skip if it's another resolution 
             }
             std::string sectionFirst = bGeneral ? "GENERAL" : section.first;
             std::string full_key = sectionFirst + "." + key_value.first;

@@ -44,11 +44,10 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
     vi = SDL_GetVideoInfo();
     int width = vi->current_w;
     int height = vi->current_h;
-    if(width == 0 || height == 0 || width == 1920 || height == 1080)
-    {
-        width = 480;
-        height = 272;
-    }
+#ifdef _WIN32
+    width = cfg.getInt(Configuration::SCREEN_WIDTH);
+    height = cfg.getInt(Configuration::SCREEN_HEIGHT);
+#endif
     theme.setScreenSize(width, height);
     renderComponent.setScreenSize(width, height);
     isApplicationStarted = false;
@@ -186,8 +185,7 @@ void Application::drawCurrentState() {
         }
         case APP_SETTINGS:
         {
-            renderComponent.drawSettingsMenu("Settings", appSettings.getAppSettings(), currentSettingsIndex);
-
+            renderComponent.drawSettingsMenu(i18n.get("appSettings"), appSettings.getAppSettings(), currentSettingsIndex);
             break;
         }
         case SYSTEM_SETTINGS:
@@ -197,7 +195,7 @@ void Application::drawCurrentState() {
             setting.title = systemSettings.currentSystem;
             setting.value = systemSettings.getDefaultCore(systemSettings.currentSystem, cache);
             systemData.push_back(setting);
-            renderComponent.drawSettingsMenu("System Settings", systemData, currentSystemSettingsIndex);
+            renderComponent.drawSettingsMenu(i18n.get("systemSettings"), systemData, currentSystemSettingsIndex);
             break;
         }
         case ROM_SETTINGS:
@@ -207,7 +205,7 @@ void Application::drawCurrentState() {
             setting.title = i18n.get("coreOverride");
             setting.value = romSettings.getDefaultCore(cache); //get selected core for this rom
             romData.push_back(setting);
-            renderComponent.drawSettingsMenu("Game Settings", romData, currentRomSettingsIndex);
+            renderComponent.drawSettingsMenu(i18n.get("romSettings"), romData, currentRomSettingsIndex);
             break;
         }
     }
@@ -428,7 +426,6 @@ void Application::run() {
     int screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
     Uint32 frameDelay = 1000 / screenRefresh;
     Uint32 now = SDL_GetTicks();
-    Uint32 lastInputTime = SDL_GetTicks();
     bool screenOff = false;
 
     Uint32 elapsed = now - frameStart;
@@ -551,7 +548,7 @@ void Application::launchRom() {
     // Launch emulator
     std::string command = "launcher.sh " + execLauncher + " '" + romPath + "'";
     std::cout << "Executing: " << command << std::endl;
-
+#ifndef _WIN32
     setenv("SDL_NOMOUSE", "1", 1);
 
     pid_t pid = fork();
@@ -564,7 +561,7 @@ void Application::launchRom() {
     } else {
             std::cerr << "Fork failed" << std::endl;
     }
-
+#endif
     // Exit the application to free all resources
     SDL_Quit();
     exit(0);
@@ -683,8 +680,7 @@ void Application::loadCache(bool force) {
     if (force || !cache.menuCacheExists(cacheFilePath)) {
         // Cache does not exist or force update is requested:
         // Read all sections and create a new cache
-        renderComponent.drawMessage("Creating ROM list, please wait...");
-        renderComponent.update();
+
 
         std::cout << "Force cache update" << std::endl;
         
@@ -725,8 +721,13 @@ std::vector<CachedMenuItem> Application::populateCache() {
     std::string romsPath = cfg.get(Configuration::ROMS_PATH);
 
     std::vector<CachedMenuItem> allCachedItems;
-
+    std::string cacheGeneration = i18n.get("cacheGenerationProgress");
+    boost::replace_all(cacheGeneration, "\\r", "\r");
+    boost::replace_all(cacheGeneration, "\\n", "\n");
     for (const auto& [consoleName, data] : consoleDataMap) {
+        lastInputTime = SDL_GetTicks();
+        renderComponent.drawMessage(cacheGeneration + " " + consoleName);
+        renderComponent.update();
         for (const auto& romDir : data.romDirs) {
             auto files = fileManager.getFiles(romsPath + romDir, data.romExts);
             for (const auto& file : files) {

@@ -32,7 +32,9 @@
         "category": "computer",
         "selectedExec": "puae_libretro",
         "execs": [
-            "puae_libretro"
+            "puae_libretro",
+            "puae2021_libretro",
+            "uae4arm_libretro"
         ],
         "romDirs": [
             "AMIGA",
@@ -84,10 +86,7 @@
     "FINALBURN ALPHA": {
         "enabled": true,
         "category": "arcade",
-        "romExts": [
-            ".zip",
-            ".7z"
-        ],
+        "selectedExec": "fbalpha2012_libretro",
         "execs": [
             "fbneo_libretro",
             "mame2003_plus_libretro",
@@ -98,7 +97,10 @@
         "romDirs": [
             "FBA"
         ],
-        "selectedExec": "fbalpha2012_libretro"
+        "romExts": [
+            ".zip",
+            ".7z"
+        ]
     },
     "ATARI 2600": {
         "enabled": true,

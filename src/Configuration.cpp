@@ -28,6 +28,10 @@ const std::string Configuration::IMAGES_PATH = std::string("GLOBAL.imagesPath");
 const std::string Configuration::SCREEN_DEPTH = std::string("GLOBAL.screenDepth");
 const std::string Configuration::GLOBAL_CACHE = std::string("GLOBAL.globalCacheJSON");
 
+#ifdef _WIN32
+const std::string Configuration::SCREEN_WIDTH = std::string("GLOBAL.screenWidth");
+const std::string Configuration::SCREEN_HEIGHT = std::string("GLOBAL.screenHeight");
+#endif
 
 // CONFIG . APPLICATION section
 const std::string Configuration::VOLUME = std::string("APPLICATION.volume");
@@ -57,16 +61,16 @@ const std::string Configuration::ROM_OVERCLOCK = std::string("GAME.romOverclock"
 const std::string Configuration::ROM_AUTOSTART = std::string("GAME.romAutostart");
 const std::string Configuration::CORE_OVERRIDE = std::string("GAME.coreOverride");
 
-
-
 /////////
 // THEME.INI
 /////////
 
 // THEME . DEFAULT section
-const std::string Configuration::SEL_ITEM_FONT_COLOR = std::string("DEFAULT.selected_item_font_color");
-const std::string Configuration::ITEMS_FONT_COLOR = std::string("DEFAULT.items_font_color");
-const std::string Configuration::THEME_BACKGROUND = std::string("DEFAULT.background");
+const std::string Configuration::SEL_ITEM_FONT_COLOR = std::string("GENERAL.selected_item_font_color");
+const std::string Configuration::ITEMS_FONT_COLOR = std::string("GENERAL.items_font_color");
+const std::string Configuration::THEME_BACKGROUND = std::string("GENERAL.background");
+const std::string Configuration::SETTINGS_BACKGROUND = std::string("GENERAL.settings_background");
+const std::string Configuration::SETTINGS_FONT = std::string("GENERAL.settings_font");
 
 // THEME . GENERAL section
 const std::string Configuration::ART_X = std::string("GENERAL.art_x");

@@ -112,6 +112,8 @@ public:
     void navigateLeft() override {
         std::cout << "navigate Left" << std::endl;
         if (settingsMap[currentKey].enabled) {
+            if(currentKey == Configuration::UPDATE_CACHES || currentKey == Configuration::QUIT)
+                return;// do not trigger in case of quit or update cache
             if (currentKey == Configuration::BRIGHTNESS) {
                 updateBrightness(false);
             
@@ -153,6 +155,8 @@ public:
     void navigateRight() override {
         std::cout << "navigate Right" << std::endl;
         if (settingsMap[currentKey].enabled) {
+            if(currentKey == Configuration::UPDATE_CACHES || currentKey == Configuration::QUIT)
+                return;// do not trigger in case of quit or update cache
             if (currentKey == Configuration::BRIGHTNESS) {
                 updateBrightness(true);
 
@@ -204,7 +208,10 @@ public:
                 // TODO this should open the core selection menu
                 std::cout << "CORE SELECTION" << std::endl;
                 coreSelectionMenu();
-            }   
+            }
+            else if (currentKey == Configuration::UPDATE_CACHES) {
+                updateCache();
+            }
         }
     }
 
@@ -218,6 +225,7 @@ public:
     void coreSelectionMenu();
     void restartApplication();
     void quitApplication();
+    void updateCache();
     void updateWifi();
     void updateRotation();
 

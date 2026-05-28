@@ -1,0 +1,52 @@
+#
+#
+#Windows compilation : install msys2 -> start msys2 mingw64
+#pacman -Su
+#pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL mingw-w64-x86_64-SDL_image mingw-w64-x86_64-SDL_ttfmingw-w64-x86_64-zlib mingw-w64-x86_64-boost git make mingw-w64-x86_64-SDL_gfx
+#git clone repo ....
+#make -f Makefile.win
+
+
+TARGET = simplermenu_plus.exe
+
+CC = g++
+LINKER = g++
+
+SRCDIR = src
+OBJDIR = obj
+BINDIR = output
+
+SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+
+OBJECTS := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES))
+
+CFLAGS = -g -Wall -O2 -Iinclude/ $(shell sdl-config --cflags) -DPOWKIDDY=1 -fpermissive 
+
+LIBS = \
+    -lmingw32 \
+    -lSDLmain \
+    -lSDL \
+    -lSDL_image \
+    -lSDL_ttf \
+    -lSDL_gfx \
+    -lboost_filesystem-mt -static-libgcc -static-libstdc++ -lgdi32 -luser32 -lwinmm -ldxguid  -lpng -ltiff -ljpeg -lwebp -lfreetype -ljbig -lzstd -ldeflate -llzma -lz
+
+LDFLAGS = $(LIBS)
+
+rm = rm -f
+
+all: prepare $(BINDIR)/$(TARGET)
+
+prepare:
+	mkdir -p $(BINDIR)
+	mkdir -p $(OBJDIR)
+
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	$(LINKER) $(OBJECTS) $(LDFLAGS) -o $@
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	$(rm) $(OBJECTS)
+	$(rm) $(BINDIR)/$(TARGET)
