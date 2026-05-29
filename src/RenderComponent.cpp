@@ -4,8 +4,8 @@
 #include <SDL/SDL_ttf.h>
 #include <SDL/SDL_image.h>
 #include <boost/filesystem.hpp>
-#include <SDL/SDL_gfxPrimitives.h>
-#include <SDL/SDL_rotozoom.h>
+//#include <SDL/SDL_gfxPrimitives.h>
+//#include <SDL/SDL_rotozoom.h>
 #include <SDL/SDL_image.h>
 #include <fstream>
 
