@@ -75,7 +75,7 @@ private:
     SDL_Event lastHeldEvent;
     unsigned int repeatStartTime;
     unsigned int repeatInterval;
-    Uint32 lastInputTime = SDL_GetTicks();
+    Uint32 lastInputTime;
 
     void loadCache(bool force = false);
 

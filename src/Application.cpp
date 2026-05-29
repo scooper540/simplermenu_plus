@@ -426,6 +426,7 @@ void Application::run() {
     int screenRefresh = cfg.getInt(Configuration::SCREEN_REFRESH);
     Uint32 frameDelay = 1000 / screenRefresh;
     Uint32 now = SDL_GetTicks();
+    lastInputTime = SDL_GetTicks();
     bool screenOff = false;
 
     Uint32 elapsed = now - frameStart;
