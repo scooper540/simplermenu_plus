@@ -11,7 +11,7 @@ CFLAGS += -fdata-sections -ffunction-sections -fPIC -flto -Wall
 LIBS += -lSDL -lSDL_image -lSDL_ttf -lSDL_gfx -lz -lpthread -lm -lboost_locale -lboost_filesystem -lasound
 
 # You can use Ofast too but it can be more prone to bugs, careful.
-CFLAGS += -Iinclude/ -DPOWKIDDY=1
+CFLAGS += -MMD -MP -Iinclude/ -I$(SYSROOT)/usr/local/include/SDL -I$(SYSROOT)/usr/local/include -DPOWKIDDY=1
 LDFLAGS += -Wl,--start-group $(LIBS) -Wl,--end-group -Wl,--as-needed -Wl,--gc-sections -flto
 
 #DEBUG = YES
@@ -27,23 +27,27 @@ OBJECTS := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(OBJECTS))
 
 rm = rm -f
 
-all: prepare $(BINDIR)/$(TARGET) $(OBJECTS)
+all: $(BINDIR)/$(TARGET)
 
-prepare:
-	mkdir -p $(BINDIR)
-	mkdir -p $(OBJDIR)
+$(OBJDIR):
+	mkdir -p $@
 
-$(BINDIR)/$(TARGET): $(OBJECTS)
+$(BINDIR):
+	mkdir -p $@
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
+	$(CXX) $(CFLAGS) -c $< -o $@
+	@echo "Compiled $< successfully!"
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+	$(CXX) $(CFLAGS) -c $< -o $@
+	@echo "Compiled $< successfully!"
+
+$(BINDIR)/$(TARGET): $(OBJECTS) | $(BINDIR)
 	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
 	@echo "Linking complete!"
 
-$(OBJECTS): $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CXX) $(CFLAGS) -c $< -o $@
-	@echo "Compiled "$<" successfully!"
-
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CXX) $(CFLAGS) -c $< -o $@
-	@echo "Compiled "$<" successfully!"
+-include $(OBJECTS:.o=.d)
 
 .PHONY: clean
 clean:
