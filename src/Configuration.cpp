@@ -68,17 +68,19 @@ const std::string Configuration::CORE_OVERRIDE = std::string("GAME.coreOverride"
 // THEME . DEFAULT section
 const std::string Configuration::SEL_ITEM_FONT_COLOR = std::string("GENERAL.selected_item_font_color");
 const std::string Configuration::ITEMS_FONT_COLOR = std::string("GENERAL.items_font_color");
+const std::string Configuration::ROM_SEL_ITEM_FONT_COLOR = std::string("GENERAL.rom_selected_item_font_color");
+const std::string Configuration::ROM_ITEMS_FONT_COLOR = std::string("GENERAL.rom_items_font_color");
 const std::string Configuration::THEME_BACKGROUND = std::string("GENERAL.background");
 const std::string Configuration::SETTINGS_BACKGROUND = std::string("GENERAL.settings_background");
 const std::string Configuration::SETTINGS_FONT = std::string("GENERAL.settings_font");
-
+const std::string Configuration::THEME_GRID = std::string("GENERAL.is_grid");
 // THEME . GENERAL section
 const std::string Configuration::ART_X = std::string("GENERAL.art_x");
 const std::string Configuration::ART_Y = std::string("GENERAL.art_y");
 const std::string Configuration::ART_MAX_W = std::string("GENERAL.art_max_w");
 const std::string Configuration::ART_MAX_H = std::string("GENERAL.art_max_h");
-const std::string Configuration::ART_TXT_DIST_FROM_PIC = std::string("GENERAL.art_text_distance_from_picture");
-const std::string Configuration::ART_TXT_LINE_SEP = std::string("GENERAL.art_text_line_separation");
+const std::string Configuration::ART_TXT_X = std::string("GENERAL.art_text_x");
+const std::string Configuration::ART_TXT_Y = std::string("GENERAL.art_text_y");
 const std::string Configuration::DISPLAY_GAME_COUNT = std::string("GENERAL.display_game_count");
 const std::string Configuration::GAME_COUNT_ALIGNMENT = std::string("GENERAL.game_count_alignment");
 const std::string Configuration::GAME_COUNT_FONT_COLOR = std::string("GENERAL.game_count_font_color");
@@ -86,6 +88,10 @@ const std::string Configuration::GAME_COUNT_X = std::string("GENERAL.game_count_
 const std::string Configuration::GAME_COUNT_Y = std::string("GENERAL.game_count_y");
 const std::string Configuration::GAME_LIST_X = std::string("GENERAL.game_list_x");
 const std::string Configuration::GAME_LIST_Y = std::string("GENERAL.game_list_y");
+const std::string Configuration::GAME_LIST_BG_ITEM = std::string("GENERAL.game_list_bg_item");
+const std::string Configuration::GAME_LIST_BG_ITEM_SELECTED = std::string("GENERAL.game_list_bg_item_selected");
+const std::string Configuration::GAME_LIST_BG_ITEM_W= std::string("GENERAL.game_list_bg_item_w");
+const std::string Configuration::GAME_LIST_BG_ITEM_H= std::string("GENERAL.game_list_bg_item_h");
 const std::string Configuration::ITEMS = std::string("GENERAL.items");
 const std::string Configuration::ITEMS_SEPARATION = std::string("GENERAL.items_separation");
 const std::string Configuration::TEXT1_X= std::string("GENERAL.text1_x");
@@ -114,6 +120,31 @@ const std::string Configuration::SETTINGS_ITEM_START_X = std::string("GENERAL.se
 const std::string Configuration::SETTINGS_ITEM_START_Y = std::string("GENERAL.settings_item_start_y");
 const std::string Configuration::SETTINGS_ITEM_STEP_Y = std::string("GENERAL.settings_item_step_y");
 const std::string Configuration::SETTINGS_ITEM_PER_PAGE = std::string("GENERAL.settings_item_per_page");
+
+
+
+const std::string Configuration::THEME_GRID_COL_COUNT= std::string("GENERAL.theme_grid_col_count");
+const std::string Configuration::THEME_GRID_ROW_COUNT= std::string("GENERAL.theme_grid_row_count");
+const std::string Configuration::THEME_GRID_TEXT_SYSTEM_FONT_PATH = std::string("GENERAL.theme_grid_text_system_font_path");
+const std::string Configuration::THEME_GRID_TEXT_SYSTEM_FONT_SIZE = std::string("GENERAL.theme_grid_text_system_font_size");
+const std::string Configuration::THEME_GRID_TEXT_SYSTEM_COLOR= std::string("GENERAL.theme_grid_text_system_color");
+const std::string Configuration::THEME_GRID_TEXT_SYSTEM_COLOR_SELECTED= std::string("GENERAL.theme_grid_text_system_color_selected");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_W= std::string("GENERAL.theme_grid_img_system_w");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_H= std::string("GENERAL.theme_grid_img_system_h");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_START_X= std::string("GENERAL.theme_grid_img_system_start_x");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_START_Y= std::string("GENERAL.theme_grid_img_system_start_y");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_INCREMENT_COL= std::string("GENERAL.theme_grid_img_system_increment_col");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_INCREMENT_ROW= std::string("GENERAL.theme_grid_img_system_increment_row");
+const std::string Configuration::THEME_GRID_IMG_BG= std::string("GENERAL.theme_grid_img_system_bg");
+const std::string Configuration::THEME_GRID_IMG_BACKGROUND= std::string("GENERAL.theme_grid_img_system_background");
+const std::string Configuration::THEME_GRID_IMG_BG_SELECTED= std::string("GENERAL.theme_grid_img_system_bg_selected");
+const std::string Configuration::THEME_GRID_IMG_BG_W= std::string("GENERAL.theme_grid_img_system_bg_w");
+const std::string Configuration::THEME_GRID_IMG_BG_H= std::string("GENERAL.theme_grid_img_system_bg_h");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_X= std::string("GENERAL.theme_grid_img_system_x");
+const std::string Configuration::THEME_GRID_IMG_SYSTEM_Y= std::string("GENERAL.theme_grid_img_system_y");
+const std::string Configuration::THEME_GRID_TEXT_SYSTEM_X= std::string("GENERAL.theme_grid_text_system_x");
+const std::string Configuration::THEME_GRID_TEXT_SYSTEM_Y= std::string("GENERAL.theme_grid_text_system_y");
+
 
 /////////
 // <SECTION>.INI

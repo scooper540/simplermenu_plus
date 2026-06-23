@@ -166,10 +166,19 @@ void Application::drawCurrentState() {
     switch (state.currentMenuLevel) {
         case MENU_SYSTEM:
         {
-            std::string systemName = menu.getSystems()[state.currentSystemIndex].getTitle();
-            std::string systemPath = "";
-            int numberOfRoms = menu.getSystems()[state.currentSystemIndex].getRoms().size();
-            renderComponent.drawSystem(systemName, systemPath, numberOfRoms);
+            //check if theme is grid or standard
+            if(!theme.getBoolValue(Configuration::THEME_GRID))
+            {
+                std::string systemName = menu.getSystems()[state.currentSystemIndex].getTitle();
+                std::string systemPath = "";
+                int numberOfRoms = menu.getSystems()[state.currentSystemIndex].getRoms().size();
+                renderComponent.drawSystem(systemName, systemPath, numberOfRoms);
+            }
+            else
+            {
+                int numberOfRoms = menu.getSystems()[state.currentSystemIndex].getRoms().size();
+                renderComponent.drawSystemGrid(menu.getSystems(), state.currentSystemIndex, numberOfRoms);
+            }
             break;
         }
         case MENU_ROM:
@@ -219,12 +228,69 @@ void Application::handleCommand(ControlMap cmd) {
                 state.currentRomIndex = 0;
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP || cmd == CMD_LEFT) { // UP
-                const System& system = menu.getSystems()[state.currentSystemIndex];
-                if (state.currentSystemIndex > 0) state.currentSystemIndex--;
-                else state.currentSystemIndex = menu.getSystems().size() - 1;
-            } else if (cmd == CMD_DOWN || cmd == CMD_RIGHT) { // DOWN
-                const System& system = menu.getSystems()[state.currentSystemIndex];
-                state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
+                //check if theme is grid or standard
+                if(!theme.getBoolValue(Configuration::THEME_GRID))
+                {
+                    const System& system = menu.getSystems()[state.currentSystemIndex];
+                    if (state.currentSystemIndex > 0) state.currentSystemIndex--;
+                    else state.currentSystemIndex = menu.getSystems().size() - 1;
+                }
+                else
+                {
+                    if(cmd==CMD_LEFT)
+                    {
+                        if (state.currentSystemIndex > 0) state.currentSystemIndex--;
+                        else state.currentSystemIndex = menu.getSystems().size() - 1;
+                    }
+                    else //up
+                    {
+                        int col = theme.getIntValue(Configuration::THEME_GRID_COL_COUNT);
+                        if (state.currentSystemIndex >= col) state.currentSystemIndex-=col;
+                        else 
+                        {
+                            int currentCol = state.currentSystemIndex;
+                            state.currentSystemIndex = ((menu.getSystems().size() - 1) / col) * col + currentCol;
+
+                            if (state.currentSystemIndex >= menu.getSystems().size())
+                                state.currentSystemIndex -= col;
+                        }
+                    }
+                }
+            } else if (cmd == CMD_DOWN || cmd == CMD_RIGHT) 
+            { // DOWN
+                //check if theme is grid or standard
+                if(!theme.getBoolValue(Configuration::THEME_GRID))
+                {
+                    const System& system = menu.getSystems()[state.currentSystemIndex];
+                    state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
+                }
+                else
+                {
+                    if(cmd==CMD_RIGHT)
+                    {
+                        const System& system = menu.getSystems()[state.currentSystemIndex];
+                        state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
+                    }
+                    else //down
+                    {
+                        int col = theme.getIntValue(Configuration::THEME_GRID_COL_COUNT);
+                        int nbSystems = menu.getSystems().size();
+
+                        if (state.currentSystemIndex + col < nbSystems)
+                        {
+                            state.currentSystemIndex += col;
+                        }
+                        else
+                        {
+                            int currentCol = state.currentSystemIndex % col;
+                            state.currentSystemIndex = currentCol;
+
+                            // Si la colonne n'existe pas dans la première ligne
+                            if (state.currentSystemIndex >= nbSystems)
+                                state.currentSystemIndex = nbSystems - 1;
+                        }
+                    }
+                }
             } else if (cmd == CMD_ROM_SETTINGS) {
                 if (!menu.getSystems()[state.currentSystemIndex].isVirtual())
                 {
@@ -500,7 +566,7 @@ void Application::run() {
         }
         drawCurrentState();
 
-        renderComponent.printFPS(fps);
+        //renderComponent.printFPS(fps);
         renderComponent.printBattery();
         renderComponent.update();
 

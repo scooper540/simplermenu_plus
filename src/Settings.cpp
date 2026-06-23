@@ -32,7 +32,7 @@ AppSettings::AppSettings(Configuration& cfg, I18n& i18n,
         Configuration::UPDATE_CACHES, Configuration::CORE_SETTINGS,
         Configuration::RESTART, Configuration::QUIT
 #else
-        Configuration::SCREEN_REFRESH, Configuration::SHOW_FPS, Configuration::THEME,
+        Configuration::THEME,
         Configuration::BRIGHTNESS,
         Configuration::LANGUAGE,
         Configuration::UPDATE_CACHES, 

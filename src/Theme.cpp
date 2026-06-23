@@ -18,7 +18,7 @@ void Theme::setScreenSize(int screenWidth, int screenHeight)
 void Theme::loadTheme(const std::string& homePath, const std::string& themePath, const std::string& themeName) {
     // Load values from .ini file using Boost.PropertyTree
     boost::property_tree::ptree pt;
-
+    configValues.clear();
     baseThemePath = homePath + "/" + themePath + "/" + themeName + "/";
 
     //we take only the GENERAL first and we override for our resolution
@@ -76,7 +76,7 @@ int Theme::getIntValue(const std::string& key) const {
         return std::stoi(value);
     } catch (const std::exception& e) {
         std::cerr << "Error converting value for key '" << key << "' to integer: " << e.what() << std::endl;
-        return 0; // Return a default value or handle the error appropriately
+        return -1; // Return a default value or handle the error appropriately
     }
 }
 float Theme::getFloatValue(const std::string& key) const {

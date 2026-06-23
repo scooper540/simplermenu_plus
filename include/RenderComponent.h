@@ -11,6 +11,7 @@
 #include "Theme.h"
 #include "HelperUtils.h"
 #include "Settings.h"
+#include "Menu.h"
 #include "FavoriteManager.h"
 
 class RenderComponent {
@@ -55,10 +56,45 @@ private:
 
     static std::unordered_map<std::string, std::string> aliasMap;
 
+    SDL_Surface* resizeImg(SDL_Surface* loadedSurface, int w, int h)
+    {
+        SDL_Surface* ret;
+        if (loadedSurface->w != w || loadedSurface->h != h) 
+        {   
+            SDL_Surface* formatted = SDL_DisplayFormatAlpha(loadedSurface);
+            SDL_FreeSurface(loadedSurface); 
+            loadedSurface = nullptr;
+
+            SDL_Rect dest = {0, 0, w, h};
+            SDL_Surface* temp = SDL_CreateRGBSurface(
+            SDL_SWSURFACE,        // surface logicielle
+            w,
+            h,
+            formatted->format->BitsPerPixel,
+            formatted->format->Rmask,
+            formatted->format->Gmask,
+            formatted->format->Bmask,
+            formatted->format->Amask
+            );
+            SDL_SoftStretch(formatted, NULL, temp, &dest);
+            SDL_FreeSurface(formatted); 
+            formatted = nullptr;
+            ret = SDL_DisplayFormatAlpha(temp);
+            SDL_FreeSurface(temp);
+            temp = nullptr;
+        }
+        else
+        {
+            ret = SDL_DisplayFormatAlpha(loadedSurface);
+            SDL_FreeSurface(loadedSurface);       
+            loadedSurface = nullptr;     
+        }
+        return ret;
+    }
     // Common method to render text on screen
     void renderText(const std::string& text, Sint16 x, Sint16 y, SDL_Color color, int align = 0) {
        
-         SDL_Surface* rawTextSurface = TTF_RenderUTF8_Blended(font, text.c_str(), color);
+        SDL_Surface* rawTextSurface = TTF_RenderUTF8_Blended(font, text.c_str(), color);
         if (!rawTextSurface) {
             // Handle the error, e.g., print an error message
             return;
@@ -96,7 +132,109 @@ private:
         SDL_BlitSurface(textSurface, NULL, screen, &destRect);
 
         SDL_FreeSurface(textSurface);  // Free the converted surface
+        textSurface = nullptr;
     }
+      // Common method to render text on screen
+    void renderText(const std::string& text, const std::string& font_path, int fontsize, Sint16 x, Sint16 y, SDL_Color color, int align = 0) 
+    {
+        TTF_Font* f = TTF_OpenFont((cfg.getThemePath() + font_path).c_str(), fontsize);
+        if(f == nullptr)
+        {
+            //fallback to standard renderText
+            renderText(text,x,y,color,align);
+            return;
+        }
+        SDL_Surface* rawTextSurface = TTF_RenderUTF8_Blended(f, text.c_str(), color);
+        if (!rawTextSurface) {
+            // Handle the error, e.g., print an error message
+            return;
+        }
+
+        // Convert the surface to the display format while preserving alpha
+        SDL_Surface* textSurface = SDL_DisplayFormatAlpha(rawTextSurface);
+        SDL_FreeSurface(rawTextSurface);  // Free the original surface
+
+        if (!textSurface) {
+            // Handle the error, e.g., print an error message
+            return;
+        }
+
+        SDL_Rect destRect;
+
+        switch(align) {
+            case 1:
+                destRect.x = x - textSurface->w / 2;
+                destRect.y = y - textSurface->h / 2;
+                break;
+            case 2:
+                destRect.x = x - textSurface->w;
+                destRect.y = y - textSurface->h / 2;
+                break;
+            case 0:
+            default:
+                destRect.x = x;
+                destRect.y = y - textSurface->h / 2;
+                break;
+        }
+
+
+        SDL_Rect position = {x, y, 0, 0};  // Assuming width and height are determined by the textSurface
+        SDL_BlitSurface(textSurface, NULL, screen, &destRect);
+
+        TTF_CloseFont(f);
+        f = nullptr;
+        SDL_FreeSurface(textSurface);  // Free the converted surface
+        textSurface = nullptr;
+    }
+    void renderText(const std::string& text, TTF_Font* f, Sint16 x, Sint16 y, SDL_Color color, int align = 0) 
+    {
+        if(f == nullptr)
+        {
+            //fallback to standard renderText
+            renderText(text,x,y,color,align);
+            return;
+        }
+        SDL_Surface* rawTextSurface = TTF_RenderUTF8_Blended(f, text.c_str(), color);
+        if (!rawTextSurface) {
+            // Handle the error, e.g., print an error message
+            return;
+        }
+
+        // Convert the surface to the display format while preserving alpha
+        SDL_Surface* textSurface = SDL_DisplayFormatAlpha(rawTextSurface);
+        SDL_FreeSurface(rawTextSurface);  // Free the original surface
+
+        if (!textSurface) {
+            // Handle the error, e.g., print an error message
+            return;
+        }
+
+        SDL_Rect destRect;
+
+        switch(align) {
+            case 1:
+                destRect.x = x - textSurface->w / 2;
+                destRect.y = y - textSurface->h / 2;
+                break;
+            case 2:
+                destRect.x = x - textSurface->w;
+                destRect.y = y - textSurface->h / 2;
+                break;
+            case 0:
+            default:
+                destRect.x = x;
+                destRect.y = y - textSurface->h / 2;
+                break;
+        }
+
+
+        SDL_Rect position = {x, y, 0, 0};  // Assuming width and height are determined by the textSurface
+        SDL_BlitSurface(textSurface, NULL, screen, &destRect);
+
+        SDL_FreeSurface(textSurface);  // Free the converted surface
+        textSurface = nullptr;
+    }
+    
     std::vector<std::string> wrapText(const std::string& text)
     {
         std::vector<std::string> result;
@@ -265,6 +403,7 @@ public:
     void loadAliases();
     void drawMessage(const std::string& msg);
     std::string getAlias(const std::string& title);
+    void drawSystemGrid(std::vector<System> listSystems, int selected, int numRoms);
     
     void update();
 
