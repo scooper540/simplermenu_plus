@@ -256,7 +256,7 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
         int titleWidth = textSurface->w;
 
         // TODO replace clipWidth the correct width based on theme.ini settings
-        int clipWidth = theme.getIntValue("GENERAL.game_list_w");
+        int clipWidth = theme.getIntValue(Configuration::GAME_LIST_W);
 
         // Create the scrolling view for titles that are too wide
         if(i == currentRomIndex) 
@@ -385,7 +385,7 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
     }
 
     // Add Folder Title
-    renderText(systemName, theme.getIntValue(Configuration::TEXT1_X), theme.getIntValue(Configuration::TEXT1_Y), {255, 255, 255}, theme.getIntValue(Configuration::TEXT2_ALIGNMENT)); 
+    renderText(systemName, theme.getIntValue(Configuration::TEXT1_X), theme.getIntValue(Configuration::TEXT1_Y), {255, 255, 255}, theme.getIntValue(Configuration::TEXT1_ALIGNMENT)); 
 }
 
 ////

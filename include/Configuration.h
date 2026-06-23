@@ -110,6 +110,7 @@ public:
     static const std::string GAME_COUNT_ALIGNMENT;
     static const std::string GAME_LIST_X;
     static const std::string GAME_LIST_Y;
+    static const std::string GAME_LIST_W;
     static const std::string GAME_LIST_BG_ITEM;
     static const std::string GAME_LIST_BG_ITEM_SELECTED;
     static const std::string GAME_LIST_BG_ITEM_W;

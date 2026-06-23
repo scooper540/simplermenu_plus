@@ -88,6 +88,7 @@ const std::string Configuration::GAME_COUNT_X = std::string("GENERAL.game_count_
 const std::string Configuration::GAME_COUNT_Y = std::string("GENERAL.game_count_y");
 const std::string Configuration::GAME_LIST_X = std::string("GENERAL.game_list_x");
 const std::string Configuration::GAME_LIST_Y = std::string("GENERAL.game_list_y");
+const std::string Configuration::GAME_LIST_W = std::string("GENERAL.game_list_w");
 const std::string Configuration::GAME_LIST_BG_ITEM = std::string("GENERAL.game_list_bg_item");
 const std::string Configuration::GAME_LIST_BG_ITEM_SELECTED = std::string("GENERAL.game_list_bg_item_selected");
 const std::string Configuration::GAME_LIST_BG_ITEM_W= std::string("GENERAL.game_list_bg_item_w");
