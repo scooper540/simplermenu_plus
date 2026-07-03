@@ -82,7 +82,8 @@ private:
     void loadCache(bool force = false);
 
     std::vector<CachedMenuItem> populateCache();
-
+    
+    void populateMenu(Menu& menu, std::string& category);
     void populateMenu(Menu& menu);
 
 public:

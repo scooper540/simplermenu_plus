@@ -9,6 +9,7 @@ enum MenuLevel {
 
 struct State {
     MenuLevel currentMenuLevel;
+    MenuLevel previousMenuLevel;
     int currentSectionIndex;
     int currentSystemIndex;
     int currentRomIndex;

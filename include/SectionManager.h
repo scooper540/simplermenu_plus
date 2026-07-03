@@ -6,16 +6,14 @@
 
 struct SectionItem {
     std::string  name;    // display name
-    std::string  action;  // SYSTEMS-xxx | ROMLIST-xxx | FAVORITES | HISTORY | SETTINGS
+    std::string  action;  // SYSTEMS-xxx | ROMLIST-xxx | FAVORITES | HISTORY | MENU-xxx
 };
 
 // Resolved action type after parsing
 enum class SectionActionType {
     SYSTEMS,    // → filter menu by group tag, enter MENU_SYSTEM
     ROMLIST,    // → go directly to MENU_ROM for a named system
-    FAVORITES,  // → go to Favorites virtual system
-    HISTORY,    // → go to History  virtual system
-    SETTINGS,   // → open APP_SETTINGS
+    MENU,   // → open menu with json file driven
     UNKNOWN
 };
 

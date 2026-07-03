@@ -57,10 +57,10 @@ void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int
     int row = theme.getIntValue(Configuration::SECTION_GRID_ROW_COUNT);
     SDL_Color textColor = theme.getColor(Configuration::SECTION_GRID_TEXT_SYSTEM_COLOR);
     SDL_Color selectedColor = theme.getColor(Configuration::SECTION_GRID_TEXT_SYSTEM_COLOR_SELECTED);
-    std::string bg_item = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_IMG_BG);
+    std::string bg_item = theme.getValue(Configuration::SECTION_GRID_IMG_BG);
 
-    std::string backgroundPath = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_IMG_BACKGROUND);
-    std::string bg_item_selected = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_IMG_BG_SELECTED); 
+    std::string backgroundPath = theme.getValue(Configuration::SECTION_GRID_IMG_BACKGROUND);
+    std::string bg_item_selected = theme.getValue(Configuration::SECTION_GRID_IMG_BG_SELECTED); 
     int img_w = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_W);
     int img_h = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_H);
     int bg_w = theme.getIntValue(Configuration::SECTION_GRID_IMG_BG_W);
@@ -82,6 +82,7 @@ void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int
     //background
     if(backgroundPath != "NOT FOUND")
     {
+        backgroundPath = cfg.getThemePath() +backgroundPath;
         if (background == nullptr || lastLoadedBackground != backgroundPath) 
         {
        	    setBackground(backgroundPath);
@@ -97,10 +98,15 @@ void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int
     TTF_Font* font = TTF_OpenFont(font_path.c_str(),font_size);
     SDL_Surface *bg = nullptr, *bg_selected=nullptr;
     if(bg_item != "NOT FOUND")
+    {
+        bg_item = cfg.getThemePath() + bg_item; 
         bg = IMG_Load(bg_item.c_str());
+    }
     if(bg_item_selected != "NOT FOUND")
+    {
+        bg_item_selected = cfg.getThemePath() + bg_item_selected;
         bg_selected = IMG_Load(bg_item_selected.c_str());
-
+    }
     //resize if needed
     if(bg)
         bg = resizeImg(bg, bg_w, bg_h);
@@ -132,9 +138,10 @@ void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int
                 SDL_BlitSurface(bg, NULL, screen, &destRect);
                         
             //get related image
-            std::string sImg = cfg.getThemePath() + theme.getValue("SECTION_" + listSections[index].name +".logo");
+            std::string sImg = theme.getValue("SECTION_" + listSections[index].name +".logo");
             if(sImg != "NOT FOUND")
             {
+                sImg = cfg.getThemePath() + sImg;
                 SDL_Surface* systemImg = IMG_Load(sImg.c_str());
                 if(systemImg)
                 {
@@ -147,6 +154,31 @@ void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int
                     SDL_FreeSurface(systemImg);
                     systemImg=nullptr; 
                 } 
+            }
+            else
+            {
+                std::string sImg = "NOT FOUND";
+                if(index == selected)
+                    sImg = theme.getValue("SECTION_" + listSections[index].name +".logo_selected");
+                else
+                    sImg = theme.getValue("SECTION_" + listSections[index].name +".logo_unselected");
+                
+                if(sImg != "NOT FOUND")
+                {
+                    sImg = cfg.getThemePath() + sImg;
+                    SDL_Surface* systemImg = IMG_Load(sImg.c_str());
+                    if(systemImg)
+                    {
+                        systemImg = resizeImg(systemImg, img_w, img_h);
+                        
+                        destRect.x += img_x;
+                        destRect.y += img_y;
+                        destRect.w = destRect.h = 0;
+                        SDL_BlitSurface(systemImg, NULL, screen, &destRect);
+                        SDL_FreeSurface(systemImg);
+                        systemImg=nullptr; 
+                    } 
+                }
             }
             std::string sSectionName = theme.getValue("SECTION_" + listSections[index].name + ".name");
             if(sSectionName == "NOT FOUND")
@@ -178,10 +210,10 @@ void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int select
     int row = theme.getIntValue(Configuration::THEME_GRID_ROW_COUNT);
     SDL_Color textColor = theme.getColor(Configuration::THEME_GRID_TEXT_SYSTEM_COLOR);
     SDL_Color selectedColor = theme.getColor(Configuration::THEME_GRID_TEXT_SYSTEM_COLOR_SELECTED);
-    std::string bg_item = cfg.getThemePath() + theme.getValue(Configuration::THEME_GRID_IMG_BG);
+    std::string bg_item = theme.getValue(Configuration::THEME_GRID_IMG_BG);
 
-    std::string backgroundPath = cfg.getThemePath() + theme.getValue(Configuration::THEME_GRID_IMG_BACKGROUND);
-    std::string bg_item_selected = cfg.getThemePath() + theme.getValue(Configuration::THEME_GRID_IMG_BG_SELECTED); 
+    std::string backgroundPath = theme.getValue(Configuration::THEME_GRID_IMG_BACKGROUND);
+    std::string bg_item_selected = theme.getValue(Configuration::THEME_GRID_IMG_BG_SELECTED); 
     int img_w = theme.getIntValue(Configuration::THEME_GRID_IMG_SYSTEM_W);
     int img_h = theme.getIntValue(Configuration::THEME_GRID_IMG_SYSTEM_H);
     int bg_w = theme.getIntValue(Configuration::THEME_GRID_IMG_BG_W);
@@ -203,6 +235,7 @@ void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int select
     //background
     if(backgroundPath != "NOT FOUND")
     {
+        backgroundPath = cfg.getThemePath() + backgroundPath;
         if (background == nullptr || lastLoadedBackground != backgroundPath) 
         {
        	    setBackground(backgroundPath);
@@ -218,10 +251,15 @@ void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int select
     TTF_Font* font = TTF_OpenFont(font_path.c_str(),font_size);
     SDL_Surface *bg = nullptr, *bg_selected=nullptr;
     if(bg_item != "NOT FOUND")
+    {
+        bg_item = cfg.getThemePath() + bg_item; 
         bg = IMG_Load(bg_item.c_str());
+    }
     if(bg_item_selected != "NOT FOUND")
+    {
+        bg_item_selected = cfg.getThemePath() + bg_item_selected;
         bg_selected = IMG_Load(bg_item_selected.c_str());
-
+    }
     //resize if needed
     if(bg)
         bg = resizeImg(bg, bg_w, bg_h);
@@ -253,9 +291,10 @@ void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int select
                 SDL_BlitSurface(bg, NULL, screen, &destRect);
                         
             //get related image
-            std::string sImg = cfg.getThemePath() + theme.getValue(listSystems[index].getTitle()+".logo");
+            std::string sImg =theme.getValue(listSystems[index].getTitle()+".logo");
             if(sImg != "NOT FOUND")
             {
+                sImg =  cfg.getThemePath() + sImg;
                 SDL_Surface* systemImg = IMG_Load(sImg.c_str());
                 if(systemImg)
                 {
@@ -269,7 +308,31 @@ void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int select
                     systemImg=nullptr; 
                 } 
             }
-
+            else
+            {
+                std::string sImg = "NOT FOUND";
+                if(index == selected)
+                    sImg = theme.getValue(listSystems[index].getTitle()+".logo_selected");
+                else
+                    sImg = theme.getValue(listSystems[index].getTitle()+".logo_unselected");
+                
+                if(sImg != "NOT FOUND")
+                {
+                    sImg = cfg.getThemePath() + sImg;
+                    SDL_Surface* systemImg = IMG_Load(sImg.c_str());
+                    if(systemImg)
+                    {
+                        systemImg = resizeImg(systemImg, img_w, img_h);
+                        
+                        destRect.x += img_x;
+                        destRect.y += img_y;
+                        destRect.w = destRect.h = 0;
+                        SDL_BlitSurface(systemImg, NULL, screen, &destRect);
+                        SDL_FreeSurface(systemImg);
+                        systemImg=nullptr; 
+                    } 
+                }
+            }
             renderText(theme.getValue(listSystems[index].getTitle() + ".name"), font, text_x + start_x + increment_col*j, text_y + start_y + increment_row*i, selected == index ? selectedColor: textColor, 1);
         }
     }
@@ -319,13 +382,16 @@ void RenderComponent::drawSystem(const std::string& name, const std::string& pat
 
 void RenderComponent::drawRomList(const std::string& systemName, const std::vector<std::pair<std::string, std::string>>& romData, int currentRomIndex) {
 
-    std::string backgroundPath =  cfg.getThemePath() + theme.getValue(Configuration::THEME_BACKGROUND);
-
-	if (background == nullptr || lastLoadedBackground != backgroundPath) {
-        setBackground(backgroundPath);
+    std::string backgroundPath =  theme.getValue(Configuration::THEME_BACKGROUND);
+    if(backgroundPath != "NOT FOUND")
+    {
+        backgroundPath = cfg.getThemePath() + backgroundPath; 
+        if (background == nullptr || lastLoadedBackground != backgroundPath) 
+        {
+            setBackground(backgroundPath);
+        }
+        SDL_BlitSurface(background, NULL, screen, NULL);
     }
-    SDL_BlitSurface(background, NULL, screen, NULL);
-
     // Set rom list starting position and item separation
     int startX = theme.getIntValue(Configuration::GAME_LIST_X);
     int startY = theme.getIntValue(Configuration::GAME_LIST_Y);
@@ -344,10 +410,11 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
 
     SDL_Surface* bg = nullptr, *bg_sel = nullptr;
     //get background item non selected and selected if exsting
-    std::string bg_item = cfg.getThemePath() + theme.getValue(Configuration::GAME_LIST_BG_ITEM);
-    std::string bg_item_selected = cfg.getThemePath() + theme.getValue(Configuration::GAME_LIST_BG_ITEM_SELECTED);
+    std::string bg_item = theme.getValue(Configuration::GAME_LIST_BG_ITEM);
+    std::string bg_item_selected = theme.getValue(Configuration::GAME_LIST_BG_ITEM_SELECTED);
     if(bg_item != "NOT FOUND")
     {
+        bg_item = cfg.getThemePath() + bg_item;
         bg = IMG_Load(bg_item.c_str());
         if(bg)
         {
@@ -358,6 +425,7 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
     }
     if(bg_item_selected != "NOT FOUND")
     {
+        bg_item_selected = cfg.getThemePath() + bg_item_selected;
         bg_sel = IMG_Load(bg_item_selected.c_str());
         if(bg_sel)
         {
@@ -862,7 +930,7 @@ void RenderComponent::printBattery() {
         if (raw) {
             int batt_w = theme.getIntValue(Configuration::BATT_W);
             int batt_h = theme.getIntValue(Configuration::BATT_H);
-            favoritePicture=resizeImg(raw, batt_w, batt_h);
+            battSurface=resizeImg(raw, batt_w, batt_h);
         }
         lastBattImage = imgPath;
     }

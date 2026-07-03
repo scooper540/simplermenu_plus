@@ -49,18 +49,16 @@ SectionAction SectionManager::parseAction(const std::string& action) {
     sa.type  = SectionActionType::UNKNOWN;
     sa.param = "";
 
-    if (action == "SETTINGS") {
-        sa.type = SectionActionType::SETTINGS;
-    } else if (action == "FAVORITES") {
-        sa.type = SectionActionType::FAVORITES;
-    } else if (action == "HISTORY") {
-        sa.type = SectionActionType::HISTORY;
-    } else if (action.substr(0, 8) == "SYSTEMS-") {
+    if (action == "MENU") 
+    {
+        sa.type = SectionActionType::MENU;
+        sa.param = action.substr(5);   // "MENU-Scripts" → "Scripts"
+    } else if (action.substr(0, 7) == "SYSTEMS") {
         sa.type  = SectionActionType::SYSTEMS;
-        sa.param = action.substr(8);   // "SYSTEMS-Arcade" → "Arcade"
-    } else if (action.substr(0, 8) == "ROMLIST-") {
+        sa.param = (action.size() >= 8 ?  action.substr(8) : "");   // "SYSTEMS-Arcade" → "Arcade"
+    } else if (action.substr(0, 7) == "ROMLIST") {
         sa.type  = SectionActionType::ROMLIST;
-        sa.param = action.substr(8);   // "ROMLIST-apps" → "apps"
+        sa.param =  (action.size() >= 8 ?  action.substr(8) : "");  // "ROMLIST-apps" → "apps"
     }
 
     return sa;

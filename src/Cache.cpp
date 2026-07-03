@@ -177,7 +177,9 @@ std::map<std::string, ConsoleData> Cache::systemsCacheLoad(const std::string& js
         if (sys.HasMember("selectedExec") && sys["selectedExec"].IsString()) {
             data.selectedExec = sys["selectedExec"].GetString();
         }
-
+        if (sys.HasMember("category") && sys["category"].IsString()) {
+            data.category = sys["category"].GetString();
+        }
         // Optionally handle aliasFile, scaling, etc. if needed
 
         systemsCacheMap[name] = data;

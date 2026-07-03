@@ -436,7 +436,10 @@
     "FINALBURN ALPHA": {
         "enabled": true,
         "category": "arcade",
-        "selectedExec": "fbalpha2012_libretro",
+        "romExts": [
+            ".zip",
+            ".7z"
+        ],
         "execs": [
             "fbneo_libretro",
             "mame2003_plus_libretro",
@@ -447,10 +450,7 @@
         "romDirs": [
             "FBA"
         ],
-        "romExts": [
-            ".zip",
-            ".7z"
-        ]
+        "selectedExec": "fbalpha2012_libretro"
     },
     "GAME & WATCH": {
         "enabled": true,
@@ -687,7 +687,8 @@
             "quicknes_libretro"
         ],
         "romDirs": [
-            "FC", "NES"
+            "FC",
+            "NES"
         ],
         "romExts": [
             ".nes",

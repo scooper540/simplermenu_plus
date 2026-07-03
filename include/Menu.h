@@ -69,7 +69,7 @@ public:
                 return i;
             }
         }
-        return 0;
+        return -1;
     }
     const std::vector<System>& getSystems() const {
         return systems;

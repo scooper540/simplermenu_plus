@@ -18,6 +18,7 @@
 #include "Application.h"
 #include "Exception.h"
 #include "platform.h"
+#include "SectionManager.h"
 
 #define SCREEN_TIMEOUT_MS 60000 // 60s
 
@@ -183,8 +184,11 @@ void Application::drawCurrentState() {
             }
             else
             {
-                int numberOfRoms = menu.getSystems()[state.currentSystemIndex].getRoms().size();
-                renderComponent.drawSystemGrid(menu.getSystems(), state.currentSystemIndex, numberOfRoms);
+                if(state.currentSystemIndex < menu.getSystems().size())
+                {
+                    int numberOfRoms = menu.getSystems()[state.currentSystemIndex].getRoms().size();
+                    renderComponent.drawSystemGrid(menu.getSystems(), state.currentSystemIndex, numberOfRoms);
+                }
             }
             break;
         }
@@ -232,8 +236,37 @@ void Application::handleCommand(ControlMap cmd) {
         case MenuLevel::MENU_SECTION:
         {
              if (cmd == CMD_ENTER) { // KEY_A/ENTER
-                state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
-                state.currentRomIndex = 0;
+                auto act = sectionManager.parseAction(sectionManager.getSections().at(state.currentSectionIndex).action);
+                switch(act.type)
+                {
+                    case SectionActionType::MENU:
+                    break;
+                    case SectionActionType::ROMLIST:
+                    {
+                        populateMenu(menu);
+                        int iSystemIndex = menu.getSystemIndexByName(act.param);
+                        if(iSystemIndex == -1) break;
+                        state.currentMenuLevel = MenuLevel::MENU_ROM;
+                        state.previousMenuLevel = MenuLevel::MENU_SECTION;
+                        state.currentSystemIndex = iSystemIndex;
+                        state.currentRomIndex = 0;
+                        break;
+                    }
+                    case SectionActionType::SYSTEMS:
+                     if(act.param != "")
+                        populateMenu(menu, act.param);
+                    else
+                        populateMenu(menu);
+                    state.currentSystemIndex = 0;
+                    state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
+                    state.previousMenuLevel = MenuLevel::MENU_SECTION;
+                    state.currentRomIndex = 0;
+                    break;
+                    case SectionActionType::UNKNOWN:
+                    default:
+                    break;
+                    
+                }
                 renderComponent.resetValues();
             } 
              if(cmd==CMD_LEFT)
@@ -287,11 +320,13 @@ void Application::handleCommand(ControlMap cmd) {
             if(cmd == CMD_BACK) // go to section
             {
                 state.currentMenuLevel = MenuLevel::MENU_SECTION;
+                state.previousMenuLevel = MenuLevel::MENU_SYSTEM;
                 state.currentRomIndex = 0;
                 renderComponent.resetValues();
             }
             if (cmd == CMD_ENTER) { // KEY_A/ENTER
                 state.currentMenuLevel = MenuLevel::MENU_ROM;
+                state.previousMenuLevel = MenuLevel::MENU_SYSTEM;
                 state.currentRomIndex = 0;
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP || cmd == CMD_LEFT) { // UP
@@ -378,7 +413,7 @@ void Application::handleCommand(ControlMap cmd) {
             break;
         case MenuLevel::MENU_ROM:
             if (cmd == CMD_BACK) { // ESC
-                state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
+                state.currentMenuLevel = state.previousMenuLevel;
                 renderComponent.resetValues();
             } else if (cmd == CMD_UP) { // UP
                 const System& system = menu.getSystems()[state.currentSystemIndex];
@@ -875,8 +910,9 @@ std::vector<CachedMenuItem> Application::populateCache() {
     return allCachedItems;
 }
 
-void Application::populateMenu(Menu& menu) {
-    
+void Application::populateMenu(Menu& menu) 
+{
+    menu = Menu();
     //virtual systems favorites and history
     System favSystem("Favorites");
     for (const auto& f : favManager.getFavorites()) {
@@ -892,7 +928,7 @@ void Application::populateMenu(Menu& menu) {
     if (!favManager.getHistory().empty())
         menu.addSystem(histSystem);
 
-// Loop through the cached items and populate the Menu structure
+    // Loop through the cached items and populate the Menu structure
     for (const auto& cachedItem : cache.menuCacheLoad(cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE))) {
         // cachedItem should have members: system, filename, path.
 
@@ -907,5 +943,30 @@ void Application::populateMenu(Menu& menu) {
         // Add the file to the system
         Rom rom(cachedItem.rom, cachedItem.path);
         system->addRom(rom);
+    }
+}
+
+void Application::populateMenu(Menu& menu, std::string& category) 
+{    
+    menu = Menu();
+    auto consoleDataMap = cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
+    // Loop through the cached items and populate the Menu structure
+    for (const auto& cachedItem : cache.menuCacheLoad(cfg.get(Configuration::HOME_PATH) + "/" + cfg.get(Configuration::GLOBAL_CACHE))) 
+    {
+        // cachedItem should have members: system, filename, path.
+        if(consoleDataMap[cachedItem.system].category == category)
+        {
+            // Check if the System already exists in the menu
+            System* system = menu.getSystemByName(cachedItem.system);
+            if (!system) {
+                System newSystem(cachedItem.system);
+                menu.addSystem(newSystem);
+                system = menu.getSystemByName(cachedItem.system);
+            }
+
+            // Add the file to the system
+            Rom rom(cachedItem.rom, cachedItem.path);
+            system->addRom(rom);
+        }
     }
 }

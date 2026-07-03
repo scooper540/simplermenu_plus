@@ -1,11 +1,11 @@
 [
     {
         "name": "FAVORITES",
-        "action": "ROMLIST-FAVORITES"
+        "action": "ROMLIST-Favorites"
     },
     {
         "name": "HISTORY",
-        "action": "ROMLIST-HISTORY"
+        "action": "ROMLIST-History"
     },
 	{
         "name": "ALL",
@@ -13,15 +13,15 @@
     },
     {
         "name": "ARCADE",
-        "action": "SYSTEMS-ARCADE"
+        "action": "SYSTEMS-arcade"
     },
     {
         "name": "CONSOLES",
-        "action": "SYSTEMS-CONSOLES"
+        "action": "SYSTEMS-console"
     },
     {
         "name": "HANDHELDS",
-        "action": "SYSTEMS-HANDHELDS"
+        "action": "SYSTEMS-handheld"
     },
     {
         "name": "SCRIPTS",
@@ -36,7 +36,7 @@
         "action": "ROMLIST-VIDEOS"
     },
     {
-        "name": "AUDIO",
-        "action": "ROMLIST-AUDIO"
+        "name": "MUSIC",
+        "action": "ROMLIST-MUSIC"
     }
 ]
