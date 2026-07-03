@@ -89,6 +89,8 @@ const std::string Configuration::GAME_COUNT_Y = std::string("GENERAL.game_count_
 const std::string Configuration::GAME_LIST_X = std::string("GENERAL.game_list_x");
 const std::string Configuration::GAME_LIST_Y = std::string("GENERAL.game_list_y");
 const std::string Configuration::GAME_LIST_W = std::string("GENERAL.game_list_w");
+const std::string Configuration::GAME_LIST_TEXT_ITEM_OFFSET_X = std::string("GENERAL.game_list_text_item_offset_x");
+const std::string Configuration::GAME_LIST_TEXT_ITEM_OFFSET_Y = std::string("GENERAL.game_list_text_item_offset_y");
 const std::string Configuration::GAME_LIST_BG_ITEM = std::string("GENERAL.game_list_bg_item");
 const std::string Configuration::GAME_LIST_BG_ITEM_SELECTED = std::string("GENERAL.game_list_bg_item_selected");
 const std::string Configuration::GAME_LIST_BG_ITEM_W= std::string("GENERAL.game_list_bg_item_w");
@@ -102,10 +104,12 @@ const std::string Configuration::TEXT2_X= std::string("GENERAL.text2_x");
 const std::string Configuration::TEXT2_Y = std::string("GENERAL.text2_y");
 const std::string Configuration::TEXT2_ALIGNMENT = std::string("GENERAL.text2_alignment");
 const std::string Configuration::THEME_FONT = std::string("GENERAL.font");
-const std::string Configuration::ICON_SCALE = std::string("GENERAL.icon_scale");
+
 
 const std::string Configuration::BATT_X = std::string("GENERAL.batt_x");
 const std::string Configuration::BATT_Y = std::string("GENERAL.batt_y");
+const std::string Configuration::BATT_W = std::string("GENERAL.batt_w");
+const std::string Configuration::BATT_H = std::string("GENERAL.batt_h");
 const std::string Configuration::BATT_1 = std::string("GENERAL.batt_1");
 const std::string Configuration::BATT_2 = std::string("GENERAL.batt_2");
 const std::string Configuration::BATT_3 = std::string("GENERAL.batt_3");
@@ -114,6 +118,8 @@ const std::string Configuration::BATT_5 = std::string("GENERAL.batt_5");
 const std::string Configuration::BATT_CHARGING = std::string("GENERAL.batt_charging");
 
 const std::string Configuration::FAVORITE_INDICATOR = std::string("GENERAL.favorite_indicator");
+const std::string Configuration::FAVORITE_INDICATOR_W = std::string("GENERAL.favorite_indicator_w");
+const std::string Configuration::FAVORITE_INDICATOR_H = std::string("GENERAL.favorite_indicator_h");
 
 const std::string Configuration::SETTINGS_ITEM_FONT_SIZE = std::string("GENERAL.settings_item_size");
 const std::string Configuration::SETTINGS_TITLE_FONT_SIZE = std::string("GENERAL.settings_title_size");
@@ -147,6 +153,29 @@ const std::string Configuration::THEME_GRID_TEXT_SYSTEM_X= std::string("GENERAL.
 const std::string Configuration::THEME_GRID_TEXT_SYSTEM_Y= std::string("GENERAL.theme_grid_text_system_y");
 
 
+const std::string Configuration::SECTION_GRID_COL_COUNT= std::string("GENERAL.section_grid_col_count");
+const std::string Configuration::SECTION_GRID_ROW_COUNT= std::string("GENERAL.section_grid_row_count");
+const std::string Configuration::SECTION_GRID_TEXT_SYSTEM_FONT_PATH = std::string("GENERAL.section_grid_text_system_font_path");
+const std::string Configuration::SECTION_GRID_TEXT_SYSTEM_FONT_SIZE = std::string("GENERAL.section_grid_text_system_font_size");
+const std::string Configuration::SECTION_GRID_TEXT_SYSTEM_COLOR= std::string("GENERAL.section_grid_text_system_color");
+const std::string Configuration::SECTION_GRID_TEXT_SYSTEM_COLOR_SELECTED= std::string("GENERAL.section_grid_text_system_color_selected");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_W= std::string("GENERAL.section_grid_img_system_w");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_H= std::string("GENERAL.section_grid_img_system_h");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_START_X= std::string("GENERAL.section_grid_img_system_start_x");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_START_Y= std::string("GENERAL.section_grid_img_system_start_y");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_INCREMENT_COL= std::string("GENERAL.section_grid_img_system_increment_col");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_INCREMENT_ROW= std::string("GENERAL.section_grid_img_system_increment_row");
+const std::string Configuration::SECTION_GRID_IMG_BG= std::string("GENERAL.section_grid_img_system_bg");
+const std::string Configuration::SECTION_GRID_IMG_BACKGROUND= std::string("GENERAL.section_grid_img_system_background");
+const std::string Configuration::SECTION_GRID_IMG_BG_SELECTED= std::string("GENERAL.section_grid_img_system_bg_selected");
+const std::string Configuration::SECTION_GRID_IMG_BG_W= std::string("GENERAL.section_grid_img_system_bg_w");
+const std::string Configuration::SECTION_GRID_IMG_BG_H= std::string("GENERAL.section_grid_img_system_bg_h");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_X= std::string("GENERAL.section_grid_img_system_x");
+const std::string Configuration::SECTION_GRID_IMG_SYSTEM_Y= std::string("GENERAL.section_grid_img_system_y");
+const std::string Configuration::SECTION_GRID_TEXT_SYSTEM_X= std::string("GENERAL.section_grid_text_system_x");
+const std::string Configuration::SECTION_GRID_TEXT_SYSTEM_Y= std::string("GENERAL.section_grid_text_system_y");
+
+
 /////////
 // <SECTION>.INI
 /////////
@@ -167,6 +196,7 @@ const std::string Configuration::CONSOLE_ALIAS_FILE = std::string(".aliasFile");
 // Savestate.json
 //////////
 const std::string Configuration::CURRENT_MENU_LEVEL = std::string("currentMenuLevel");
+const std::string Configuration::CURRENT_SECTION_INDEX = std::string("currentSectionIndex");
 const std::string Configuration::CURRENT_SYSTEM_INDEX = std::string("currentSystemIndex");
 const std::string Configuration::CURRENT_ROM_INDEX = std::string("currentRomIndex");
 const std::string Configuration::LAUNCHER_CALLBACK = std::string("launcherCallback");
@@ -268,6 +298,8 @@ State Configuration::loadState() {
         state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
     } else if (currentMenuLevelStr == "MENU_ROM") {
         state.currentMenuLevel = MenuLevel::MENU_ROM;
+    } else if (currentMenuLevelStr == "MENU_SECTION") {
+        state.currentMenuLevel = MenuLevel::MENU_SECTION;
     } else if (currentMenuLevelStr == "APP_SETTINGS") {
         state.currentMenuLevel = MenuLevel::APP_SETTINGS;
     } else if (currentMenuLevelStr == "SYSTEM_SETTINGS") {
@@ -279,7 +311,7 @@ State Configuration::loadState() {
             "Error loading state: invalid currentMenuLevel value: " 
             + currentMenuLevelStr);
     }
-
+    state.currentSectionIndex = statePt.get<int>(Configuration::CURRENT_SECTION_INDEX);
     state.currentSystemIndex = statePt.get<int>(Configuration::CURRENT_SYSTEM_INDEX);
     state.currentRomIndex = statePt.get<int>(Configuration::CURRENT_ROM_INDEX);
     state.launcherCallback = statePt.get<bool>(Configuration::LAUNCHER_CALLBACK);
@@ -296,6 +328,9 @@ void Configuration::saveState(const State& state) {
     
         std::string currentMenuLevelStr;
         switch (state.currentMenuLevel) {
+             case MenuLevel::MENU_SECTION:
+                currentMenuLevelStr = "MENU_SECTION";
+                break;
             case MenuLevel::MENU_SYSTEM:
                 currentMenuLevelStr = "MENU_SYSTEM";
                 break;
@@ -318,6 +353,7 @@ void Configuration::saveState(const State& state) {
         }
     
         statePt.put(Configuration::CURRENT_MENU_LEVEL, currentMenuLevelStr);
+        statePt.put(Configuration::CURRENT_SECTION_INDEX, state.currentSectionIndex);
         statePt.put(Configuration::CURRENT_SYSTEM_INDEX, state.currentSystemIndex);
         statePt.put(Configuration::CURRENT_ROM_INDEX, state.currentRomIndex);
         statePt.put(Configuration::LAUNCHER_CALLBACK, state.launcherCallback);

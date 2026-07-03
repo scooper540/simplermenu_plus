@@ -1,4 +1,5 @@
 enum MenuLevel {
+    MENU_SECTION,
     MENU_SYSTEM,
     MENU_ROM,
     APP_SETTINGS,
@@ -8,6 +9,7 @@ enum MenuLevel {
 
 struct State {
     MenuLevel currentMenuLevel;
+    int currentSectionIndex;
     int currentSystemIndex;
     int currentRomIndex;
     bool launcherCallback;

@@ -13,6 +13,7 @@
 #include "Settings.h"
 #include "Menu.h"
 #include "FavoriteManager.h"
+#include "SectionManager.h"
 
 class RenderComponent {
 private:
@@ -404,7 +405,7 @@ public:
     void drawMessage(const std::string& msg);
     std::string getAlias(const std::string& title);
     void drawSystemGrid(std::vector<System> listSystems, int selected, int numRoms);
-    
+    void drawSectionGrid(std::vector<SectionItem> listSections, int selected);
     void update();
 
     void setScreenSize(int screenWidth, int screenHeight)

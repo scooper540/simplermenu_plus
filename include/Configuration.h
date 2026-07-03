@@ -111,6 +111,8 @@ public:
     static const std::string GAME_LIST_X;
     static const std::string GAME_LIST_Y;
     static const std::string GAME_LIST_W;
+    static const std::string GAME_LIST_TEXT_ITEM_OFFSET_X;
+    static const std::string GAME_LIST_TEXT_ITEM_OFFSET_Y;
     static const std::string GAME_LIST_BG_ITEM;
     static const std::string GAME_LIST_BG_ITEM_SELECTED;
     static const std::string GAME_LIST_BG_ITEM_W;
@@ -124,10 +126,12 @@ public:
     static const std::string TEXT2_Y;
     static const std::string TEXT2_ALIGNMENT;
     static const std::string THEME_FONT;
-    static const std::string ICON_SCALE;
+
     //battery
     static const std::string BATT_X;
     static const std::string BATT_Y;
+    static const std::string BATT_W;
+    static const std::string BATT_H;
     static const std::string BATT_1;
     static const std::string BATT_2;
     static const std::string BATT_3;
@@ -137,6 +141,8 @@ public:
 
     //favorite
     static const std::string FAVORITE_INDICATOR;
+    static const std::string FAVORITE_INDICATOR_W;
+    static const std::string FAVORITE_INDICATOR_H;
     /////////
 
     //settings
@@ -168,6 +174,29 @@ public:
     static const std::string THEME_GRID_IMG_SYSTEM_Y;
     static const std::string THEME_GRID_TEXT_SYSTEM_X;
     static const std::string THEME_GRID_TEXT_SYSTEM_Y;
+
+    
+    static const std::string SECTION_GRID_COL_COUNT;
+    static const std::string SECTION_GRID_ROW_COUNT;
+    static const std::string SECTION_GRID_TEXT_SYSTEM_COLOR;
+    static const std::string SECTION_GRID_TEXT_SYSTEM_FONT_PATH;
+    static const std::string SECTION_GRID_TEXT_SYSTEM_FONT_SIZE;
+    static const std::string SECTION_GRID_TEXT_SYSTEM_COLOR_SELECTED;
+    static const std::string SECTION_GRID_IMG_SYSTEM_W;
+    static const std::string SECTION_GRID_IMG_SYSTEM_H;
+    static const std::string SECTION_GRID_IMG_SYSTEM_START_X;
+    static const std::string SECTION_GRID_IMG_SYSTEM_START_Y;
+    static const std::string SECTION_GRID_IMG_SYSTEM_INCREMENT_COL;
+    static const std::string SECTION_GRID_IMG_SYSTEM_INCREMENT_ROW;
+    static const std::string SECTION_GRID_IMG_BG;
+    static const std::string SECTION_GRID_IMG_BACKGROUND;
+    static const std::string SECTION_GRID_IMG_BG_SELECTED;
+    static const std::string SECTION_GRID_IMG_BG_W;
+    static const std::string SECTION_GRID_IMG_BG_H;
+    static const std::string SECTION_GRID_IMG_SYSTEM_X;
+    static const std::string SECTION_GRID_IMG_SYSTEM_Y;
+    static const std::string SECTION_GRID_TEXT_SYSTEM_X;
+    static const std::string SECTION_GRID_TEXT_SYSTEM_Y;
     
 
     // <SECTION>.INI

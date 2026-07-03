@@ -1,0 +1,42 @@
+[
+    {
+        "name": "FAVORITES",
+        "action": "ROMLIST-FAVORITES"
+    },
+    {
+        "name": "HISTORY",
+        "action": "ROMLIST-HISTORY"
+    },
+	{
+        "name": "ALL",
+        "action": "SYSTEMS"
+    },
+    {
+        "name": "ARCADE",
+        "action": "SYSTEMS-ARCADE"
+    },
+    {
+        "name": "CONSOLES",
+        "action": "SYSTEMS-CONSOLES"
+    },
+    {
+        "name": "HANDHELDS",
+        "action": "SYSTEMS-HANDHELDS"
+    },
+    {
+        "name": "SCRIPTS",
+        "action": "MENU-SCRIPTS"
+    },
+    {
+        "name": "APPS",
+        "action": "ROMLIST-APPS"
+    },
+    {
+        "name": "VIDEOS",
+        "action": "ROMLIST-VIDEOS"
+    },
+    {
+        "name": "AUDIO",
+        "action": "ROMLIST-AUDIO"
+    }
+]

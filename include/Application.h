@@ -26,6 +26,7 @@
 #include "Settings.h"
 #include "I18n.h"
 #include "FavoriteManager.h"
+#include "SectionManager.h"
 
 
 namespace pt = boost::property_tree;
@@ -56,6 +57,7 @@ private:
     HelperUtils helper;
     
     FavoritesManager favManager;
+    SectionManager sectionManager;
 
     std::vector<ILanguageObserver *> langObservers;
 

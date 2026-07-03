@@ -114,6 +114,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         std::cout << "State not found, using default values" << std::endl;
         state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
         state.currentSystemIndex = 0;
+        state.currentSectionIndex = 0;
         state.currentRomIndex = 0;
         state.launcherCallback = false;
         cfg.saveState(state);
@@ -132,6 +133,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         cfg.get(Configuration::HOME_PATH) + "favorites.json",
         cfg.get(Configuration::HOME_PATH) + "history.json"
     );
+    sectionManager.load(cfg.get(Configuration::HOME_PATH) + "sections.json");
 
     populateMenu(menu);
 
@@ -164,6 +166,11 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
 void Application::drawCurrentState() {
     std::stringstream ss;
     switch (state.currentMenuLevel) {
+        case MENU_SECTION:
+        {
+            renderComponent.drawSectionGrid(sectionManager.getSections(), state.currentSectionIndex);
+            break;
+        }
         case MENU_SYSTEM:
         {
             //check if theme is grid or standard
@@ -222,7 +229,67 @@ void Application::drawCurrentState() {
 
 void Application::handleCommand(ControlMap cmd) {
     switch (state.currentMenuLevel) {
+        case MenuLevel::MENU_SECTION:
+        {
+             if (cmd == CMD_ENTER) { // KEY_A/ENTER
+                state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
+                state.currentRomIndex = 0;
+                renderComponent.resetValues();
+            } 
+             if(cmd==CMD_LEFT)
+            {
+                if (state.currentSectionIndex > 0) state.currentSectionIndex--;
+                else state.currentSectionIndex = sectionManager.getSections().size() - 1;
+            }
+            if(cmd==CMD_UP)
+            { 
+                int col = theme.getIntValue(Configuration::SECTION_GRID_COL_COUNT);
+                int nbSections = sectionManager.getSections().size();
+                if(state.currentSectionIndex == 0) ////first one-> then we go back to end  of list, else select first item
+                {
+                    int currentCol = state.currentSectionIndex;
+                    state.currentSectionIndex = ((nbSections - 1) / col) * col + currentCol;
+                }
+                else if (state.currentSectionIndex - col >= 0)
+                {
+                    state.currentSectionIndex -= col;
+                }
+                else 
+                {
+                     state.currentSectionIndex = 0;
+                }
+            }
+            if(cmd==CMD_RIGHT)
+            {
+                state.currentSectionIndex = (state.currentSectionIndex + 1) % sectionManager.getSections().size();
+            }
+            if(cmd==CMD_DOWN)      
+            {
+                int col = theme.getIntValue(Configuration::SECTION_GRID_COL_COUNT);
+                int nbSections = sectionManager.getSections().size();
+                if(state.currentSectionIndex == nbSections-1) ////last one-> then we go back to begin of list, else select last item
+                {
+                    int currentCol = state.currentSectionIndex % col;
+                    state.currentSectionIndex = currentCol;
+                }
+                else if (state.currentSectionIndex + col < nbSections)
+                {
+                    state.currentSectionIndex += col;
+                }
+                else 
+                {
+                     state.currentSectionIndex = nbSections-1;
+                }
+            }
+            break;
+        }
         case MenuLevel::MENU_SYSTEM:
+            if(cmd == CMD_BACK) // go to section
+            {
+                state.currentMenuLevel = MenuLevel::MENU_SECTION;
+                state.currentRomIndex = 0;
+                renderComponent.resetValues();
+            }
             if (cmd == CMD_ENTER) { // KEY_A/ENTER
                 state.currentMenuLevel = MenuLevel::MENU_ROM;
                 state.currentRomIndex = 0;
@@ -231,7 +298,6 @@ void Application::handleCommand(ControlMap cmd) {
                 //check if theme is grid or standard
                 if(!theme.getBoolValue(Configuration::THEME_GRID))
                 {
-                    const System& system = menu.getSystems()[state.currentSystemIndex];
                     if (state.currentSystemIndex > 0) state.currentSystemIndex--;
                     else state.currentSystemIndex = menu.getSystems().size() - 1;
                 }
@@ -245,14 +311,19 @@ void Application::handleCommand(ControlMap cmd) {
                     else //up
                     {
                         int col = theme.getIntValue(Configuration::THEME_GRID_COL_COUNT);
-                        if (state.currentSystemIndex >= col) state.currentSystemIndex-=col;
-                        else 
+                        int nbSystems = menu.getSystems().size();
+                        if(state.currentSystemIndex == 0) ////first one-> then we go back to end  of list, else select first item
                         {
                             int currentCol = state.currentSystemIndex;
-                            state.currentSystemIndex = ((menu.getSystems().size() - 1) / col) * col + currentCol;
-
-                            if (state.currentSystemIndex >= menu.getSystems().size())
-                                state.currentSystemIndex -= col;
+                            state.currentSystemIndex = ((nbSystems - 1) / col) * col + currentCol;
+                        }
+                        else if (state.currentSystemIndex - col >= 0)
+                        {
+                            state.currentSystemIndex -= col;
+                        }
+                        else 
+                        {
+                            state.currentSystemIndex = 0;
                         }
                     }
                 }
@@ -261,33 +332,30 @@ void Application::handleCommand(ControlMap cmd) {
                 //check if theme is grid or standard
                 if(!theme.getBoolValue(Configuration::THEME_GRID))
                 {
-                    const System& system = menu.getSystems()[state.currentSystemIndex];
                     state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
                 }
                 else
                 {
                     if(cmd==CMD_RIGHT)
                     {
-                        const System& system = menu.getSystems()[state.currentSystemIndex];
                         state.currentSystemIndex = (state.currentSystemIndex + 1) % menu.getSystems().size();
                     }
                     else //down
-                    {
+                    { 
                         int col = theme.getIntValue(Configuration::THEME_GRID_COL_COUNT);
                         int nbSystems = menu.getSystems().size();
-
-                        if (state.currentSystemIndex + col < nbSystems)
-                        {
-                            state.currentSystemIndex += col;
-                        }
-                        else
+                        if(state.currentSystemIndex == nbSystems-1) ////last one-> then we go back to begin of list, else select last item
                         {
                             int currentCol = state.currentSystemIndex % col;
                             state.currentSystemIndex = currentCol;
-
-                            // Si la colonne n'existe pas dans la première ligne
-                            if (state.currentSystemIndex >= nbSystems)
-                                state.currentSystemIndex = nbSystems - 1;
+                        }
+                        else if (state.currentSystemIndex + col < nbSystems)
+                        {
+                            state.currentSystemIndex += col;
+                        }
+                        else 
+                        {
+                            state.currentSystemIndex = nbSystems-1;
                         }
                     }
                 }

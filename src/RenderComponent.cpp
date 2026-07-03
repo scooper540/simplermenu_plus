@@ -51,6 +51,126 @@ RenderComponent::~RenderComponent() {
         TTF_CloseFont(settingsFont);
     // Implementation
 }
+void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int selected) 
+{    
+    int col = theme.getIntValue(Configuration::SECTION_GRID_COL_COUNT);
+    int row = theme.getIntValue(Configuration::SECTION_GRID_ROW_COUNT);
+    SDL_Color textColor = theme.getColor(Configuration::SECTION_GRID_TEXT_SYSTEM_COLOR);
+    SDL_Color selectedColor = theme.getColor(Configuration::SECTION_GRID_TEXT_SYSTEM_COLOR_SELECTED);
+    std::string bg_item = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_IMG_BG);
+
+    std::string backgroundPath = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_IMG_BACKGROUND);
+    std::string bg_item_selected = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_IMG_BG_SELECTED); 
+    int img_w = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_W);
+    int img_h = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_H);
+    int bg_w = theme.getIntValue(Configuration::SECTION_GRID_IMG_BG_W);
+    int bg_h = theme.getIntValue(Configuration::SECTION_GRID_IMG_BG_H);
+    int start_x = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_START_X);
+    int start_y = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_START_Y);
+    int increment_col = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_INCREMENT_COL);
+    int increment_row = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_INCREMENT_ROW);
+    
+    int img_x = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_X);
+    int img_y = theme.getIntValue(Configuration::SECTION_GRID_IMG_SYSTEM_Y);
+    int text_x = theme.getIntValue(Configuration::SECTION_GRID_TEXT_SYSTEM_X);
+    int text_y = theme.getIntValue(Configuration::SECTION_GRID_TEXT_SYSTEM_Y);
+
+
+    std::string font_path = cfg.getThemePath() + theme.getValue(Configuration::SECTION_GRID_TEXT_SYSTEM_FONT_PATH); 
+    int font_size = theme.getIntValue(Configuration::SECTION_GRID_TEXT_SYSTEM_FONT_SIZE);
+
+    //background
+    if(backgroundPath != "NOT FOUND")
+    {
+        if (background == nullptr || lastLoadedBackground != backgroundPath) 
+        {
+       	    setBackground(backgroundPath);
+    	}
+    	SDL_BlitSurface(background, NULL, screen, NULL);
+    } 
+    else 
+    {
+        clearScreen(); 
+    }
+
+
+    TTF_Font* font = TTF_OpenFont(font_path.c_str(),font_size);
+    SDL_Surface *bg = nullptr, *bg_selected=nullptr;
+    if(bg_item != "NOT FOUND")
+        bg = IMG_Load(bg_item.c_str());
+    if(bg_item_selected != "NOT FOUND")
+        bg_selected = IMG_Load(bg_item_selected.c_str());
+
+    //resize if needed
+    if(bg)
+        bg = resizeImg(bg, bg_w, bg_h);
+    if(bg_selected)
+        bg_selected = resizeImg(bg_selected, bg_w, bg_h);
+
+
+    //find system page to display
+    int itemsPerPage = row * col;
+    int page = selected / itemsPerPage;
+    int firstIndex = page * itemsPerPage;
+    int lastIndex = std::min(firstIndex + itemsPerPage,
+                         (int)listSections.size());
+    for(int i=0; i< row;i++)
+    {
+        for(int j=0; j<col;j++)
+        {
+            int index= firstIndex + i * col + j;
+            if(index >= listSections.size())
+                break;
+            SDL_Rect destRect = {start_x + increment_col * j, start_y + increment_row*i, 0, 0}; 
+            //blitbackgrond
+            if(index == selected)
+            {
+                if(bg_selected)
+                    SDL_BlitSurface(bg_selected, NULL, screen, &destRect);
+            }
+            else if(bg)
+                SDL_BlitSurface(bg, NULL, screen, &destRect);
+                        
+            //get related image
+            std::string sImg = cfg.getThemePath() + theme.getValue("SECTION_" + listSections[index].name +".logo");
+            if(sImg != "NOT FOUND")
+            {
+                SDL_Surface* systemImg = IMG_Load(sImg.c_str());
+                if(systemImg)
+                {
+                    systemImg = resizeImg(systemImg, img_w, img_h);
+                    
+                    destRect.x += img_x;
+                    destRect.y += img_y;
+                    destRect.w = destRect.h = 0;
+                    SDL_BlitSurface(systemImg, NULL, screen, &destRect);
+                    SDL_FreeSurface(systemImg);
+                    systemImg=nullptr; 
+                } 
+            }
+            std::string sSectionName = theme.getValue("SECTION_" + listSections[index].name + ".name");
+            if(sSectionName == "NOT FOUND")
+                sSectionName = listSections[index].name;
+            renderText(sSectionName, font, text_x + start_x + increment_col*j, text_y + start_y + increment_row*i, selected == index ? selectedColor: textColor, 1);
+        }
+    }
+    if(font != nullptr)
+    {
+        TTF_CloseFont(font);
+        font=nullptr;
+    }
+    if(bg !=nullptr)
+    {
+        SDL_FreeSurface(bg);
+        bg=nullptr;
+    }
+    if(bg_selected !=nullptr)
+    {
+        SDL_FreeSurface(bg_selected);
+        bg_selected=nullptr;
+    }   
+}
+
 
 void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int selected, int numRoms) 
 {    
@@ -209,6 +329,8 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
     // Set rom list starting position and item separation
     int startX = theme.getIntValue(Configuration::GAME_LIST_X);
     int startY = theme.getIntValue(Configuration::GAME_LIST_Y);
+    int startX_offset = theme.getIntValue(Configuration::GAME_LIST_TEXT_ITEM_OFFSET_X);
+    int startY_offset = theme.getIntValue(Configuration::GAME_LIST_TEXT_ITEM_OFFSET_Y);
     int stepY = theme.getIntValue(Configuration::ITEMS_SEPARATION);
 
     int itemsPerPage = theme.getIntValue(Configuration::ITEMS);
@@ -256,8 +378,9 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
         int titleWidth = textSurface->w;
 
         // TODO replace clipWidth the correct width based on theme.ini settings
-        int clipWidth = theme.getIntValue(Configuration::GAME_LIST_W);
-
+        int clipWidth = theme.getIntValue(Configuration::GAME_LIST_W) - 2 * startX_offset; //2x x offset to center on the box 
+        int textStartX = startX + startX_offset;
+        int textStartY = startY + startY_offset;
         // Create the scrolling view for titles that are too wide
         if(i == currentRomIndex) 
         {
@@ -281,8 +404,8 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
                     selectTime = SDL_GetTicks();
                 }
             }
-            SDL_Rect destRect = {static_cast<Sint16>(startX - scrollPixelPosition), startY, 0, 0};  // Adjust x position by scrollPixelPosition
-            SDL_Rect clipRect = {startX, startY, clipWidth, static_cast<Uint16>(textSurface->h)}; // Ensure text doesn't spill over the intended area
+            SDL_Rect destRect = {static_cast<Sint16>(textStartX - scrollPixelPosition), textStartY, 0, 0};  // Adjust x position by scrollPixelPosition
+            SDL_Rect clipRect = {textStartX, textStartY, clipWidth, static_cast<Uint16>(textSurface->h)}; // Ensure text doesn't spill over the intended area
 
             SDL_SetClipRect(screen, &clipRect);
             SDL_BlitSurface(textSurface, nullptr, screen, &destRect);
@@ -295,10 +418,10 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
                 SDL_Rect r = {startX, startY, 0,0};
                 SDL_BlitSurface(bg, NULL, screen, &r);
             }
-            SDL_Rect clipRect = {startX, startY, clipWidth, static_cast<Uint16>(textSurface->h)}; // Ensure text doesn't spill over the intended area
-
+            SDL_Rect clipRect = {textStartX, textStartY, clipWidth, static_cast<Uint16>(textSurface->h)}; // Ensure text doesn't spill over the intended area
+            SDL_Rect destRect = {textStartX, textStartY, 0, 0};
             SDL_SetClipRect(screen, &clipRect);
-            SDL_BlitSurface(textSurface, nullptr, screen, &clipRect);
+            SDL_BlitSurface(textSurface, nullptr, screen, &destRect);
         }
 
         SDL_SetClipRect(screen, NULL);  // Reset the clip rect
@@ -369,8 +492,9 @@ void RenderComponent::drawRomList(const std::string& systemName, const std::vect
                 SDL_Surface* raw = IMG_Load(imgPath.c_str());
                 if (raw) 
                 {
-                    float img_scaling = theme.getFloatValue(Configuration::ICON_SCALE);
-                    favoritePicture=resizeImg(raw, raw->w * img_scaling, raw->h * img_scaling);
+                    int fav_w = theme.getIntValue(Configuration::FAVORITE_INDICATOR_W);
+                    int fav_h = theme.getIntValue(Configuration::FAVORITE_INDICATOR_H);
+                    favoritePicture=resizeImg(raw, fav_w, fav_h);
                 }
             }
         }
@@ -736,8 +860,9 @@ void RenderComponent::printBattery() {
         //printf("imgPath = %s\n", imgPath.c_str());
         SDL_Surface* raw = IMG_Load(imgPath.c_str());
         if (raw) {
-            float img_scaling = theme.getFloatValue(Configuration::ICON_SCALE);
-            battSurface=resizeImg(raw, raw->w * img_scaling, raw->h * img_scaling);
+            int batt_w = theme.getIntValue(Configuration::BATT_W);
+            int batt_h = theme.getIntValue(Configuration::BATT_H);
+            favoritePicture=resizeImg(raw, batt_w, batt_h);
         }
         lastBattImage = imgPath;
     }

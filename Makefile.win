@@ -20,7 +20,7 @@ SOURCES := $(wildcard $(SRCDIR)/*.cpp)
 
 OBJECTS := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SOURCES))
 
-CFLAGS = -g -Wall -O0 -Iinclude/ $(shell sdl-config --cflags) -DPOWKIDDY=1 -fpermissive 
+CFLAGS = -w -g -Wall -O0 -Iinclude/ $(shell sdl-config --cflags) -DPOWKIDDY=1 -fpermissive 
 
 LIBS = \
     -lmingw32 \
