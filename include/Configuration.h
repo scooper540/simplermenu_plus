@@ -89,17 +89,20 @@ public:
     // THEME . DEFAULT section
     static const std::string SEL_ITEM_FONT_COLOR;
     static const std::string ITEMS_FONT_COLOR;
+    static const std::string ROM_SEL_ITEM_FONT_COLOR;
+    static const std::string ROM_ITEMS_FONT_COLOR;
     static const std::string THEME_BACKGROUND;
     static const std::string SETTINGS_BACKGROUND;
     static const std::string SETTINGS_FONT;
+    static const std::string THEME_GRID;
     
     // THEME . GENERAL section
     static const std::string ART_X;
     static const std::string ART_Y;
     static const std::string ART_MAX_W;
     static const std::string ART_MAX_H;
-    static const std::string ART_TXT_DIST_FROM_PIC;
-    static const std::string ART_TXT_LINE_SEP;
+    static const std::string ART_TXT_X;
+    static const std::string ART_TXT_Y;
     static const std::string DISPLAY_GAME_COUNT;
     static const std::string GAME_COUNT_FONT_COLOR;
     static const std::string GAME_COUNT_X;
@@ -107,6 +110,11 @@ public:
     static const std::string GAME_COUNT_ALIGNMENT;
     static const std::string GAME_LIST_X;
     static const std::string GAME_LIST_Y;
+    static const std::string GAME_LIST_W;
+    static const std::string GAME_LIST_BG_ITEM;
+    static const std::string GAME_LIST_BG_ITEM_SELECTED;
+    static const std::string GAME_LIST_BG_ITEM_W;
+    static const std::string GAME_LIST_BG_ITEM_H;
     static const std::string ITEMS;
     static const std::string ITEMS_SEPARATION;
     static const std::string TEXT1_X;
@@ -139,6 +147,29 @@ public:
     static const std::string SETTINGS_ITEM_STEP_Y;
     static const std::string SETTINGS_ITEM_PER_PAGE;
     
+    static const std::string THEME_GRID_COL_COUNT;
+    static const std::string THEME_GRID_ROW_COUNT;
+    static const std::string THEME_GRID_TEXT_SYSTEM_COLOR;
+    static const std::string THEME_GRID_TEXT_SYSTEM_FONT_PATH;
+    static const std::string THEME_GRID_TEXT_SYSTEM_FONT_SIZE;
+    static const std::string THEME_GRID_TEXT_SYSTEM_COLOR_SELECTED;
+    static const std::string THEME_GRID_IMG_SYSTEM_W;
+    static const std::string THEME_GRID_IMG_SYSTEM_H;
+    static const std::string THEME_GRID_IMG_SYSTEM_START_X;
+    static const std::string THEME_GRID_IMG_SYSTEM_START_Y;
+    static const std::string THEME_GRID_IMG_SYSTEM_INCREMENT_COL;
+    static const std::string THEME_GRID_IMG_SYSTEM_INCREMENT_ROW;
+    static const std::string THEME_GRID_IMG_BG;
+    static const std::string THEME_GRID_IMG_BACKGROUND;
+    static const std::string THEME_GRID_IMG_BG_SELECTED;
+    static const std::string THEME_GRID_IMG_BG_W;
+    static const std::string THEME_GRID_IMG_BG_H;
+    static const std::string THEME_GRID_IMG_SYSTEM_X;
+    static const std::string THEME_GRID_IMG_SYSTEM_Y;
+    static const std::string THEME_GRID_TEXT_SYSTEM_X;
+    static const std::string THEME_GRID_TEXT_SYSTEM_Y;
+    
+
     // <SECTION>.INI
     /////////
 
