@@ -49,10 +49,9 @@ SectionAction SectionManager::parseAction(const std::string& action) {
     sa.type  = SectionActionType::UNKNOWN;
     sa.param = "";
 
-    if (action == "MENU") 
+    if (action == "SETTINGS") 
     {
-        sa.type = SectionActionType::MENU;
-        sa.param = action.substr(5);   // "MENU-Scripts" → "Scripts"
+        sa.type = SectionActionType::SETTINGS;
     } else if (action.substr(0, 7) == "SYSTEMS") {
         sa.type  = SectionActionType::SYSTEMS;
         sa.param = (action.size() >= 8 ?  action.substr(8) : "");   // "SYSTEMS-Arcade" → "Arcade"

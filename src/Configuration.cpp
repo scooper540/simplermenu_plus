@@ -123,11 +123,17 @@ const std::string Configuration::FAVORITE_INDICATOR_H = std::string("GENERAL.fav
 
 const std::string Configuration::SETTINGS_ITEM_FONT_SIZE = std::string("GENERAL.settings_item_size");
 const std::string Configuration::SETTINGS_TITLE_FONT_SIZE = std::string("GENERAL.settings_title_size");
+const std::string Configuration::SETTINGS_TITLE_X = std::string("GENERAL.settings_title_x");
+const std::string Configuration::SETTINGS_TITLE_Y = std::string("GENERAL.settings_title_y");
+const std::string Configuration::SETTINGS_TITLE_COLOR = std::string("GENERAL.settings_title_color");
+const std::string Configuration::SETTINGS_TITLE_ALIGNMENT = std::string("GENERAL.settings_title_alignement");
 const std::string Configuration::SETTINGS_ITEM_START_X = std::string("GENERAL.settings_item_start_x");
 const std::string Configuration::SETTINGS_ITEM_START_Y = std::string("GENERAL.settings_item_start_y");
 const std::string Configuration::SETTINGS_ITEM_STEP_Y = std::string("GENERAL.settings_item_step_y");
 const std::string Configuration::SETTINGS_ITEM_PER_PAGE = std::string("GENERAL.settings_item_per_page");
 
+const std::string Configuration::SETTINGS_ITEM_VALUE_X_OFFSET = std::string("GENERAL.settings_item_value_x_offset");
+const std::string Configuration::SETTINGS_ITEM_VALUE_TEXT_ALIGNEMENT = std::string("GENERAL.settings_item_value_text_alignement");
 
 
 const std::string Configuration::THEME_GRID_COL_COUNT= std::string("GENERAL.theme_grid_col_count");
@@ -200,7 +206,7 @@ const std::string Configuration::CURRENT_SECTION_INDEX = std::string("currentSec
 const std::string Configuration::CURRENT_SYSTEM_INDEX = std::string("currentSystemIndex");
 const std::string Configuration::CURRENT_ROM_INDEX = std::string("currentRomIndex");
 const std::string Configuration::LAUNCHER_CALLBACK = std::string("launcherCallback");
-
+const std::string Configuration::CURRENT_CATEGORY_INDEX = std::string("currentCategoryIndex");
 
 Configuration::Configuration(const std::string& configIniFilepath, 
                              const std::string& stateFilepath) 
@@ -306,6 +312,8 @@ State Configuration::loadState() {
         state.currentMenuLevel = MenuLevel::SYSTEM_SETTINGS;
     } else if (currentMenuLevelStr == "ROM_SETTINGS") {
         state.currentMenuLevel = MenuLevel::ROM_SETTINGS;
+    } else if (currentMenuLevelStr == "FILTER_SYSTEM_SETTINGS") {
+            state.currentMenuLevel = MenuLevel::FILTER_SYSTEM_SETTINGS;
     } else {
         throw ValueConversionException(
             "Error loading state: invalid currentMenuLevel value: " 
@@ -314,6 +322,7 @@ State Configuration::loadState() {
     state.currentSectionIndex = statePt.get<int>(Configuration::CURRENT_SECTION_INDEX);
     state.currentSystemIndex = statePt.get<int>(Configuration::CURRENT_SYSTEM_INDEX);
     state.currentRomIndex = statePt.get<int>(Configuration::CURRENT_ROM_INDEX);
+    state.currentFilterCategory = statePt.get<int>(Configuration::CURRENT_CATEGORY_INDEX);
     state.launcherCallback = statePt.get<bool>(Configuration::LAUNCHER_CALLBACK);
 
     std::cout << stateFilepath << " load.\n";
@@ -346,6 +355,9 @@ void Configuration::saveState(const State& state) {
             case MenuLevel::ROM_SETTINGS:
                 currentMenuLevelStr = "ROM_SETTINGS";
                 break;
+            case MenuLevel::FILTER_SYSTEM_SETTINGS:
+                currentMenuLevelStr = "FILTER_SYSTEM_SETTINGS";
+                break;
             default:
                 throw ValueConversionException(
                     "Error saving state: invalid currentMenuLevel value: " 
@@ -356,6 +368,7 @@ void Configuration::saveState(const State& state) {
         statePt.put(Configuration::CURRENT_SECTION_INDEX, state.currentSectionIndex);
         statePt.put(Configuration::CURRENT_SYSTEM_INDEX, state.currentSystemIndex);
         statePt.put(Configuration::CURRENT_ROM_INDEX, state.currentRomIndex);
+        statePt.put(Configuration::CURRENT_CATEGORY_INDEX, state.currentFilterCategory);
         statePt.put(Configuration::LAUNCHER_CALLBACK, state.launcherCallback);
     
         boost::property_tree::json_parser::write_json(stateFilepath, statePt);

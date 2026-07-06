@@ -94,6 +94,13 @@ public:
     static const std::string THEME_BACKGROUND;
     static const std::string SETTINGS_BACKGROUND;
     static const std::string SETTINGS_FONT;
+    static const std::string SETTINGS_TITLE_X;
+    static const std::string SETTINGS_TITLE_Y;
+    static const std::string SETTINGS_TITLE_COLOR;
+    static const std::string SETTINGS_TITLE_ALIGNMENT; 
+    static const std::string SETTINGS_ITEM_VALUE_X_OFFSET;
+    static const std::string SETTINGS_ITEM_VALUE_TEXT_ALIGNEMENT;
+    
     static const std::string THEME_GRID;
     
     // THEME . GENERAL section
@@ -220,6 +227,7 @@ public:
     static const std::string CURRENT_SECTION_INDEX;
     static const std::string CURRENT_SYSTEM_INDEX;
     static const std::string CURRENT_ROM_INDEX;
+    static const std::string CURRENT_CATEGORY_INDEX;
     static const std::string LAUNCHER_CALLBACK;
 
 

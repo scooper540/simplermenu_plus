@@ -36,7 +36,8 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
       renderComponent(cfg, theme, favManager),
       appSettings(cfg, i18n, 0, 100, 5),
       systemSettings(cfg, i18n, 0, 100, 5),
-      romSettings(cfg, i18n, 0, 100, 5)
+      romSettings(cfg, i18n, 0, 100, 5),
+      filterSettings(cfg, i18n, 0, 100, 5)
  {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         exit(1);
@@ -63,6 +64,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
     romSettings.initializeSettings();
     systemSettings.initializeSettings();
     appSettings.initializeSettings();
+    filterSettings.initializeSettings();
 
     //initialize display at the begin to be able to display a building rom list during cache generation
     renderComponent.initialize();
@@ -87,6 +89,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         state.currentSystemIndex = 0;
         state.currentRomIndex = 0;
         state.launcherCallback = false;
+        state.currentFilterCategory = 0;
 
         cfg.saveState(state);
 
@@ -118,6 +121,7 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
         state.currentSectionIndex = 0;
         state.currentRomIndex = 0;
         state.launcherCallback = false;
+        state.currentFilterCategory = 0;
         cfg.saveState(state);
     }
     loadCache(false);
@@ -140,8 +144,16 @@ Application::Application(const std::string& szBasePath, const std::string& szSta
 
     theme.loadTheme(cfg.get(Configuration::HOME_PATH), cfg.get(Configuration::THEME_PATH), cfg.get(Configuration::THEME));
     
-
-
+    //load all category
+    std::set<std::string> categories;
+    categories.insert("All");
+    auto consoleDataMap = cache.systemsCacheLoad(cfg.get(Configuration::HOME_PATH) + "systems.json");
+    for (const auto& [key, data] : consoleDataMap) { // Structured binding (C++17)
+        categories.insert(data.category);
+    }
+    lstUniqueCategories = std::vector(categories.begin(), categories.end());
+    filterSettings.iCurrentFilter = state.currentFilterCategory;
+    filterSettings.allCategories = lstUniqueCategories;
     // Initialize joystick
 #ifndef POWKIDDY
 //disable joystick at this time, to be enabled again once SDL1.2 open all joystick when 1 is opened from client app
@@ -228,6 +240,16 @@ void Application::drawCurrentState() {
             renderComponent.drawSettingsMenu(i18n.get("romSettings"), romData, currentRomSettingsIndex);
             break;
         }
+         case FILTER_SYSTEM_SETTINGS:
+        {
+            std::vector<Settings::I18nSetting> filterData;
+            Settings::I18nSetting setting;
+            setting.title = i18n.get("filterCategory");
+            setting.value = lstUniqueCategories.at(currentCategory);
+            filterData.push_back(setting);
+            renderComponent.drawSettingsMenu(i18n.get("filterSetting"), filterData, currentCategory);
+            break;
+        }
     }
 }
 
@@ -239,7 +261,8 @@ void Application::handleCommand(ControlMap cmd) {
                 auto act = sectionManager.parseAction(sectionManager.getSections().at(state.currentSectionIndex).action);
                 switch(act.type)
                 {
-                    case SectionActionType::MENU:
+                    case SectionActionType::SETTINGS:
+                    cmd = CMD_SYS_SETTINGS;
                     break;
                     case SectionActionType::ROMLIST:
                     {
@@ -253,14 +276,14 @@ void Application::handleCommand(ControlMap cmd) {
                         break;
                     }
                     case SectionActionType::SYSTEMS:
-                     if(act.param != "")
-                        populateMenu(menu, act.param);
-                    else
-                        populateMenu(menu);
-                    state.currentSystemIndex = 0;
-                    state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
-                    state.previousMenuLevel = MenuLevel::MENU_SECTION;
-                    state.currentRomIndex = 0;
+                        if(act.param != "")
+                            populateMenu(menu, act.param);
+                        else
+                            populateMenu(menu);
+                        state.currentSystemIndex = 0;
+                        state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
+                        state.previousMenuLevel = MenuLevel::MENU_SECTION;
+                        state.currentRomIndex = 0;
                     break;
                     case SectionActionType::UNKNOWN:
                     default:
@@ -394,7 +417,9 @@ void Application::handleCommand(ControlMap cmd) {
                         }
                     }
                 }
-            } else if (cmd == CMD_ROM_SETTINGS) {
+            } 
+            else if (cmd == CMD_ROM_SETTINGS) 
+            {
                 if (!menu.getSystems()[state.currentSystemIndex].isVirtual())
                 {
                     state.currentMenuLevel = MenuLevel::SYSTEM_SETTINGS;
@@ -404,7 +429,12 @@ void Application::handleCommand(ControlMap cmd) {
                     systemSettings.getCores(systemSettings.currentSystem, cache);
                 }
             }
-
+            else if (cmd == CMD_TOGGLE_FAVORITE) { //populate menu by category
+                state.currentMenuLevel = MenuLevel::FILTER_SYSTEM_SETTINGS;
+                renderComponent.resetValues();
+                filterSettings.iCurrentFilter = currentCategory;
+                filterSettings.allCategories = lstUniqueCategories;
+            }
             // Save state after navigating, but not when entering the ROM settings
             if (cmd != CMD_ROM_SETTINGS) {
                 cfg.saveState(state);
@@ -492,6 +522,19 @@ void Application::handleCommand(ControlMap cmd) {
                 std::cout << "currentSettingsIndex: " << state.currentSystemIndex << std::endl;
             }
             break;
+        case FILTER_SYSTEM_SETTINGS:
+            if (cmd == CMD_BACK) { // ESC
+                if(currentCategory == 0) //all -> no filter
+                    populateMenu(menu);
+                else
+                    populateMenu(menu, lstUniqueCategories.at(currentCategory));
+                state.currentSystemIndex = 0;
+                state.currentMenuLevel = MenuLevel::MENU_SYSTEM;
+                state.previousMenuLevel = MenuLevel::MENU_SECTION;
+                state.currentRomIndex = 0;
+                renderComponent.resetValues();
+            } 
+            break;
         case ROM_SETTINGS:
             if (cmd == CMD_BACK) { // ESC
                 // Flush pending core override to disk now
@@ -571,11 +614,21 @@ void Application::handleCommand(ControlMap cmd) {
         }// } else if (cmd == CMD_ENTER) {
         //     romSettings.navigateEnter();
         // }
-
-        std::string currentKey = romSettings.getCurrentKey();
+         std::string currentKey = romSettings.getCurrentKey();
         std::string currentValue = romSettings.getCurrentValue();
 
     }
+    if(state.currentMenuLevel == FILTER_SYSTEM_SETTINGS) {
+        if (cmd == CMD_LEFT) {
+            filterSettings.navigateLeft();
+        } else if (cmd == CMD_RIGHT) {
+            filterSettings.navigateRight();
+        } else if (cmd == CMD_ENTER) {
+            filterSettings.navigateEnter();
+        }
+        currentCategory = filterSettings.iCurrentFilter;
+    }
+       
 }
 
 bool Application::isInteger(const std::string &s) {
@@ -789,6 +842,11 @@ void Application::settingsChanged(const std::string& key, const std::string& val
         cache.systemCacheUpdateSelectedExec(
                     cfg.get(Configuration::HOME_PATH) + "systems.json", 
                     menu.getSystems()[state.currentSystemIndex].getTitle(), value);
+        return; //don't save ini file in that case
+    }
+    else if(isApplicationStarted && state.currentMenuLevel == MenuLevel::FILTER_SYSTEM_SETTINGS)
+    {
+        currentCategory = 1;
         return; //don't save ini file in that case
     }
     else if(isApplicationStarted && key == Configuration::UPDATE_CACHES) //renew the cache

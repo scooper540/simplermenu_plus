@@ -13,7 +13,7 @@ struct SectionItem {
 enum class SectionActionType {
     SYSTEMS,    // → filter menu by group tag, enter MENU_SYSTEM
     ROMLIST,    // → go directly to MENU_ROM for a named system
-    MENU,   // → open menu with json file driven
+    SETTINGS,   // → open settings
     UNKNOWN
 };
 

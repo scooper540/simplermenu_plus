@@ -169,11 +169,11 @@ void RenderComponent::drawSectionGrid(std::vector<SectionItem> listSections, int
                     SDL_Surface* systemImg = IMG_Load(sImg.c_str());
                     if(systemImg)
                     {
-                        systemImg = resizeImg(systemImg, img_w, img_h);
+                        systemImg = resizeImg(systemImg, bg_w, bg_h);
                         
-                        destRect.x += img_x;
-                        destRect.y += img_y;
-                        destRect.w = destRect.h = 0;
+                        //destRect.x += img_x;
+                        //destRect.y += img_y;
+                        //destRect.w = destRect.h = 0;
                         SDL_BlitSurface(systemImg, NULL, screen, &destRect);
                         SDL_FreeSurface(systemImg);
                         systemImg=nullptr; 
@@ -322,11 +322,11 @@ void RenderComponent::drawSystemGrid(std::vector<System> listSystems, int select
                     SDL_Surface* systemImg = IMG_Load(sImg.c_str());
                     if(systemImg)
                     {
-                        systemImg = resizeImg(systemImg, img_w, img_h);
+                        systemImg = resizeImg(systemImg, bg_w, bg_h);
                         
-                        destRect.x += img_x;
-                        destRect.y += img_y;
-                        destRect.w = destRect.h = 0;
+                        //destRect.x += img_x;
+                        //destRect.y += img_y;
+                        //destRect.w = destRect.h = 0;
                         SDL_BlitSurface(systemImg, NULL, screen, &destRect);
                         SDL_FreeSurface(systemImg);
                         systemImg=nullptr; 
@@ -606,20 +606,23 @@ void RenderComponent::drawSettingsMenu(
         setBackground(backgroundPath);
     }
     SDL_BlitSurface(background, NULL, screen, NULL);
-
     int titleFontSize = theme.getIntValue(Configuration::SETTINGS_TITLE_FONT_SIZE);
     if(titleFont == nullptr) 
     {
         std::cout << "new font" <<std::endl;
         titleFont = TTF_OpenFont(settingsFontPath.c_str(), titleFontSize);
     }
-    SDL_Surface* titleSurface = TTF_RenderUTF8_Blended(titleFont, settingsTitle.c_str(), {255,255,255});
-    SDL_Rect titlePos = {screenWidth / 2 - titleSurface->w /2 , 5, 0,0};
+    renderText(settingsTitle.c_str(), titleFont, theme.getIntValue(Configuration::SETTINGS_TITLE_X), theme.getIntValue(Configuration::SETTINGS_TITLE_Y), theme.getColor(Configuration::SETTINGS_TITLE_COLOR), theme.getIntValue(Configuration::SETTINGS_TITLE_ALIGNMENT)); 
+
+    /*SDL_Surface* titleSurface = TTF_RenderUTF8_Blended(titleFont, settingsTitle.c_str(), {255,255,255});
+    SDL_Rect titlePos = {screenWidth / 2 - titleSurface->w /2 , theme.getIntValue(Configuration::SETTINGS_TITLE_FONT_SIZE), 0,0};
     SDL_BlitSurface(titleSurface, nullptr, screen, &titlePos);
     SDL_FreeSurface(titleSurface);
     titleSurface = nullptr;
-
+    */
     int startX = theme.getIntValue(Configuration::SETTINGS_ITEM_START_X);
+    int valueoffset_x = theme.getIntValue(Configuration::SETTINGS_ITEM_VALUE_X_OFFSET);
+    int value_alignement = theme.getIntValue(Configuration::SETTINGS_ITEM_VALUE_TEXT_ALIGNEMENT);
     int startY = theme.getIntValue(Configuration::SETTINGS_ITEM_START_Y);
     int stepY = theme.getIntValue(Configuration::SETTINGS_ITEM_STEP_Y);
     int itemsPerPage = theme.getIntValue(Configuration::SETTINGS_ITEM_PER_PAGE);
@@ -635,7 +638,7 @@ void RenderComponent::drawSettingsMenu(
         SDL_Color color = (i == currentSettingIndex) ? 
             theme.getColor(Configuration::SEL_ITEM_FONT_COLOR) :
             theme.getColor(Configuration::ITEMS_FONT_COLOR);
-
+/*
         SDL_Surface* textSurface = TTF_RenderUTF8_Blended(
             settingsFont, 
             settingList[i].title.c_str(),
@@ -648,25 +651,32 @@ void RenderComponent::drawSettingsMenu(
         SDL_SetClipRect(screen, NULL);
         SDL_FreeSurface(textSurface);
         textSurface = nullptr;
-        
-        std::string pageInfo = std::to_string(currentPage + 1) + " / " + std::to_string(total_pages);
-        int x = theme.getIntValue(Configuration::TEXT2_X);
-        int y = theme.getIntValue(Configuration::TEXT2_Y);
-        renderText(pageInfo, x, y, {255, 255, 255}, theme.getIntValue(Configuration::TEXT2_ALIGNMENT));
-
+*/
+        renderText(settingList[i].title.c_str(), settingsFont, startX, startY, color, 0);
         std::string settingsValue = settingList[i].value;
         if (settingsValue == "INTERNAL" || settingsValue.empty()) { 
             settingsValue = ". . .";
         }
 
-        SDL_Surface* valueSurface = TTF_RenderUTF8_Blended(settingsFont, settingsValue.c_str(), color);
+        renderText(settingsValue.c_str(), settingsFont, startX + valueoffset_x, startY, color, value_alignement);
+
+
+     /*   SDL_Surface* valueSurface = TTF_RenderUTF8_Blended(settingsFont, settingsValue.c_str(), color);
 
         SDL_Rect valueDestRect = {static_cast<Sint16>(screenWidth - valueSurface->w - 10), startY, 0, 0};
         SDL_BlitSurface(valueSurface, nullptr, screen, &valueDestRect);
         SDL_FreeSurface(valueSurface);
         valueSurface = nullptr;
-
+*/
         startY += stepY;
+    }
+    // Display pagination page number / total_pages at the bottom
+    if(total_pages > 1)
+    {
+        std::string pageInfo = std::to_string(currentPage + 1) + " / " + std::to_string(total_pages);
+        int x = theme.getIntValue(Configuration::TEXT2_X);
+        int y = theme.getIntValue(Configuration::TEXT2_Y);
+        renderText(pageInfo, x, y, {255, 255, 255}, theme.getIntValue(Configuration::TEXT2_ALIGNMENT));
     }
 }
 void RenderComponent::drawMessage(const std::string& msg)

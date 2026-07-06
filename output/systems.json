@@ -94,7 +94,7 @@
     },
     "APPS": {
         "enabled": true,
-        "category": "arcade",
+        "category": "misc",
         "romExts": [
             ".sh"
         ],
@@ -198,17 +198,17 @@
     },
     "BENNUGD": {
         "enabled": true,
-        "category": "handheld",
-        "selectedExec": "bennugd_libretro",
+        "category": "misc",
+        "romExts": [
+            ".dat"
+        ],
         "execs": [
             "bennugd_libretro"
         ],
         "romDirs": [
             "BENNUGD"
         ],
-        "romExts": [
-            ".dat"
-        ]
+        "selectedExec": "bennugd_libretro"
     },
     "CAVE": {
         "enabled": true,
@@ -355,7 +355,7 @@
     },
     "DOOM": {
         "enabled": true,
-        "category": "console",
+        "category": "misc",
         "selectedExec": "prboom_libretro",
         "execs": [
             "prboom_libretro"
@@ -436,10 +436,7 @@
     "FINALBURN ALPHA": {
         "enabled": true,
         "category": "arcade",
-        "romExts": [
-            ".zip",
-            ".7z"
-        ],
+        "selectedExec": "fbalpha2012_libretro",
         "execs": [
             "fbneo_libretro",
             "mame2003_plus_libretro",
@@ -450,7 +447,10 @@
         "romDirs": [
             "FBA"
         ],
-        "selectedExec": "fbalpha2012_libretro"
+        "romExts": [
+            ".zip",
+            ".7z"
+        ]
     },
     "GAME & WATCH": {
         "enabled": true,
@@ -819,7 +819,7 @@
     },
     "PORTS": {
         "enabled": true,
-        "category": "arcade",
+        "category": "misc",
         "romExts": [
             ".sh"
         ],
@@ -1214,6 +1214,36 @@
             ".pc2",
             ".zip",
             ".7z"
+        ]
+    },
+    "VIDEO": {
+        "enabled": true,
+        "category": "misc",
+        "selectedExec": "ffmpeg_standalone",
+        "execs": [
+            "ffmpeg_standalone"
+        ],
+        "romDirs": [
+            "../videos"
+        ],
+        "romExts": [
+            ".mp4",
+            ".avi"
+        ]
+    },
+    "MUSIC": {
+        "enabled": true,
+        "category": "misc",
+        "selectedExec": "ffmpeg_standalone",
+        "execs": [
+            "ffmpeg_standalone"
+        ],
+        "romDirs": [
+            "../music"
+        ],
+        "romExts": [
+            ".mp3",
+            ".wav"
         ]
     },
     "ZX SPECTRUM": {

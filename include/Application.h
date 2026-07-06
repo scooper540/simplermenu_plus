@@ -50,6 +50,7 @@ private:
     AppSettings appSettings;
     SystemSettings systemSettings;
     RomSettings romSettings;
+    FilterSystemSettings filterSettings;
 
     ControlMapping controlMapping;
     RenderComponent renderComponent;
@@ -67,6 +68,8 @@ private:
     int currentSystemSettingsIndex = 0;
     int currentRomSettingsIndex = 0;
     int currentSettingsValue = 0;
+    std::vector<std::string> lstUniqueCategories;
+    int currentCategory = 0;
     // Pending core override — flushed to disk only on CMD_BACK from ROM_SETTINGS
     bool hasPendingCoreOverride = false;
     std::string pendingCoreOverridePath;

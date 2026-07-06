@@ -60,6 +60,12 @@ RomSettings::RomSettings(Configuration& cfg, I18n& i18n,
 
 }
 
+FilterSystemSettings::FilterSystemSettings(Configuration& cfg, I18n& i18n,
+                          int minValue, int maxValue, int delta)
+        : Settings(cfg, i18n, minValue, maxValue, delta) {
+     
+}
+
 void Settings::
 navigateUp() {
     std::cout << "navigate Up" << std::endl;
@@ -467,6 +473,9 @@ std::string SystemSettings::getName() {
 
 std::string RomSettings::getName() {
     return "RomSettings::" + std::to_string((unsigned long long)(void**)this);
+}
+std::string FilterSystemSettings::getName() {
+    return "FilterSystemSettings::" + std::to_string((unsigned long long)(void**)this);
 }
 
 

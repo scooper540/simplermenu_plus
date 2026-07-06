@@ -12,31 +12,11 @@
         "action": "SYSTEMS"
     },
     {
-        "name": "ARCADE",
-        "action": "SYSTEMS-arcade"
+        "name": "OTHERS",
+        "action": "SYSTEMS-misc"
     },
     {
-        "name": "CONSOLES",
-        "action": "SYSTEMS-console"
-    },
-    {
-        "name": "HANDHELDS",
-        "action": "SYSTEMS-handheld"
-    },
-    {
-        "name": "SCRIPTS",
-        "action": "MENU-SCRIPTS"
-    },
-    {
-        "name": "APPS",
-        "action": "ROMLIST-APPS"
-    },
-    {
-        "name": "VIDEOS",
-        "action": "ROMLIST-VIDEOS"
-    },
-    {
-        "name": "MUSIC",
-        "action": "ROMLIST-MUSIC"
+        "name": "SETTINGS",
+        "action": "SETTINGS"
     }
 ]

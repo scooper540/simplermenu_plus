@@ -313,6 +313,31 @@ public:
     }
 };
 
+
+class FilterSystemSettings : public Settings {
+public:
+
+    FilterSystemSettings(Configuration& cfg, I18n& i18n, 
+                   int minValue, int maxValue, int delta);
+    int iCurrentFilter;
+    std::vector<std::string> allCategories;
+    
+    void navigateUp() { /*Settings::navigateUp();*/ };
+    void navigateDown() { /*Settings::navigateDown();*/};
+    void navigateLeft() override {
+        std::cout << "navigate Left" << std::endl;
+        if(--iCurrentFilter<0)
+            iCurrentFilter = allCategories.size()-1;
+    };
+    void navigateRight() override {
+        std::cout << "navigate Right" << std::endl;
+        if(++iCurrentFilter > allCategories.size()-1)
+            iCurrentFilter = 0;
+    };
+    void navigateEnter() override {};
+    std::string getName() override;
+};
+
 class RomSettings : public Settings, public ILanguageObserver {
 public:
     RomSettings(Configuration& cfg, I18n& i18n, 

@@ -4,7 +4,8 @@ enum MenuLevel {
     MENU_ROM,
     APP_SETTINGS,
     SYSTEM_SETTINGS,
-    ROM_SETTINGS
+    ROM_SETTINGS,
+    FILTER_SYSTEM_SETTINGS
 };
 
 struct State {
@@ -13,5 +14,6 @@ struct State {
     int currentSectionIndex;
     int currentSystemIndex;
     int currentRomIndex;
+    int currentFilterCategory;
     bool launcherCallback;
 };
